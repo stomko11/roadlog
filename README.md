@@ -1,5 +1,9 @@
 # 🚗 Roadlog
 
+[![Docker Hub](https://img.shields.io/docker/pulls/stomko11/roadlog?label=Docker%20Hub)](https://hub.docker.com/r/stomko11/roadlog)
+[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-stomko11%2Froadlog-blue)](https://ghcr.io/stomko11/roadlog)
+[![GitHub release](https://img.shields.io/github/v/tag/stomko11/roadlog?label=version)](https://github.com/stomko11/roadlog/releases)
+
 A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expenses, and monitor consumption across all your vehicles.
 
 ## Features
