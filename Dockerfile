@@ -1,10 +1,9 @@
 # --- Build ---
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 RUN apk add --no-cache gcc musl-dev
 WORKDIR /app
-COPY backend/go.mod backend/go.sum ./
-RUN go mod download
 COPY backend/ .
+RUN go mod download
 RUN CGO_ENABLED=1 go build -o roadlog .
 
 # --- Runtime ---
