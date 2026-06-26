@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Roadlog</title>
+<style>
+:root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--accent:#3b82f6;--accent-hover:#2563eb}
+[data-theme="light"]{--bg:#f8fafc;--surface:#ffffff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--accent-hover:#1d4ed8}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .3s,color .3s}
+.container{max-width:600px;margin:0 auto;padding:1rem}
+h1{font-size:1.5rem;margin-bottom:1rem}h2{font-size:1.2rem;margin-bottom:.75rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:1rem;margin-bottom:.75rem;cursor:pointer;transition:border-color .2s,background .3s}
+.card:hover{border-color:var(--accent)}
+.btn{display:inline-block;padding:.6rem 1.2rem;border-radius:.5rem;border:none;font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:background .2s;color:white}
+.btn-primary{background:var(--accent)}.btn-primary:hover{background:var(--accent-hover)}
+.btn-block{display:block;width:100%;text-align:center}
+.btn-sm{padding:.4rem .8rem;font-size:.8rem}
+.form-group{margin-bottom:1rem}.form-group label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:.25rem}
+.form-group input,.form-group select{width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:1rem;transition:background .3s,color .3s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
+input[type="datetime-local"]::-webkit-calendar-picker-indicator{filter:invert(0.7);cursor:pointer;padding:.25rem}
+input[type="datetime-local"]{cursor:pointer}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0.7);cursor:pointer;padding:.25rem}
+input[type="date"]{cursor:pointer}
+.prefill-hint{font-size:.75rem;color:var(--muted);margin-top:.2rem;font-style:italic}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:.75rem;text-align:center;transition:background .3s}
+.stat-card .value{font-size:1.3rem;font-weight:700;color:var(--accent)}.stat-card .label{font-size:.75rem;color:var(--muted)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.back{color:var(--muted);text-decoration:none;font-size:.9rem;cursor:pointer;background:none;border:none}.back:hover{color:var(--text)}
+.empty{text-align:center;color:var(--muted);padding:2rem}
+.error{color:#ef4444;font-size:.85rem;margin-bottom:.5rem}
+.link{color:var(--accent);cursor:pointer;background:none;border:none;font-size:.85rem}
+.nav{display:flex;gap:.5rem;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}
+.nav button{background:none;border:none;color:var(--muted);padding:.4rem .8rem;border-radius:.4rem;cursor:pointer;font-size:.85rem}
+.nav button.active{background:var(--accent);color:white}
+.toggle{position:relative;width:44px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;border:none;transition:background .3s}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform .2s}
+.toggle.on::after{transform:translateX(20px)}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border:none}
+.monthly-bar{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem}
+.monthly-bar .bar{flex:1;height:24px;background:var(--border);border-radius:4px;overflow:hidden}
+.monthly-bar .bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+.monthly-bar .month-label{width:60px;font-size:.8rem;color:var(--muted)}
+.monthly-bar .month-value{width:60px;font-size:.8rem;text-align:right}
+.dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:10;max-height:180px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:.5rem;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.dropdown-item{display:flex;justify-content:space-between;align-items:center;padding:.6rem .75rem;cursor:pointer;transition:background .15s}
+.dropdown-item:hover{background:var(--border)}
+.dropdown-item+.dropdown-item{border-top:1px solid var(--border)}
+.dropdown-item .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.2rem .4rem;border-radius:.25rem}
+.dropdown-item .del-btn:hover{color:#ef4444;background:rgba(239,68,68,.1)}
+.dropdown-add{padding:.6rem .75rem;cursor:pointer;color:var(--accent);font-weight:500;border-top:1px solid var(--border);transition:background .15s}
+.dropdown-add:hover{background:var(--border)}
+.period-toggle{display:flex;gap:.25rem;margin-bottom:1rem;flex-wrap:wrap}
+.period-toggle button{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:.35rem .7rem;border-radius:.4rem;cursor:pointer;font-size:.8rem;transition:all .2s}
+.period-toggle button.active{background:var(--accent);color:white;border-color:var(--accent)}
+.chart-section{margin-bottom:1.5rem}
+.chart-section h3{font-size:.9rem;color:var(--muted);margin-bottom:.5rem}
+.chart-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;font-size:.8rem}
+.chart-row .chart-label{width:90px;color:var(--muted);text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem}
+.chart-row .chart-bar{flex:1;height:20px;background:var(--border);border-radius:3px;overflow:hidden}
+.chart-row .chart-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.chart-row .chart-val{width:55px;text-align:right;flex-shrink:0}
+.line-chart{position:relative;height:120px;border-left:1px solid var(--border);border-bottom:1px solid var(--border);margin:0 0 .5rem 40px;display:flex;align-items:flex-end}
+.line-chart .dot{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%)}
+.line-chart .line-bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;margin:0 1px;min-width:4px;transition:height .3s;opacity:.7}
+.line-chart .line-bar:hover{opacity:1}
+.chart-legend{display:flex;gap:.5rem;font-size:.75rem;color:var(--muted);margin-bottom:.25rem;flex-wrap:wrap}
+.vehicle-filter{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.vehicle-filter button{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:.3rem .6rem;border-radius:.4rem;cursor:pointer;font-size:.78rem}
+.vehicle-filter button.active{background:var(--accent);color:white;border-color:var(--accent)}
+.period-select{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.4rem .6rem;font-size:.85rem;cursor:pointer;appearance:auto}
+.vbar-chart{display:flex;align-items:flex-end;gap:2px;height:140px;padding:0 .25rem;margin-bottom:.25rem;border-bottom:1px solid var(--border);overflow:hidden}
+.vbar-chart .vbar{flex:1;min-width:20px;background:var(--accent);border-radius:3px 3px 0 0;transition:height .3s;position:relative;cursor:default;opacity:.8}
+.vbar-chart .vbar:hover{opacity:1}
+.vbar-chart .vbar:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:.3rem;padding:.2rem .4rem;font-size:.7rem;white-space:nowrap;color:var(--text);z-index:5}
+.vbar-labels{display:flex;gap:4px;padding:0 .25rem}
+.vbar-labels span{flex:1;min-width:20px;text-align:center;font-size:.65rem;color:var(--muted)}
+.bar-tip{position:relative;cursor:default}
+.bar-tip:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:.3rem;padding:.25rem .5rem;font-size:.7rem;white-space:nowrap;z-index:10;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+let token=localStorage.getItem('roadlog_token');
+let theme=localStorage.getItem('roadlog_theme')||'dark';
+document.documentElement.setAttribute('data-theme',theme);
+
+const currencies={EUR:'€',USD:'$',GBP:'£',CZK:'Kč',PLN:'zł',CHF:'CHF',SEK:'kr',NOK:'kr',DKK:'kr',HUF:'Ft'};
+let curr='€';
+
+let state={page:token?'dashboard':'login',vehicles:[],vehicleId:null,fillups:[],stats:null,prefill:null,dashboard:null,settings:null,users:[]};
+
+async function api(p,o={}){
+  const headers={'Content-Type':'application/json'};
+  if(token)headers['Authorization']='Bearer '+token;
+  const r=await fetch('/api'+p,{headers,...o});
+  if(r.status===401&&token){token=null;localStorage.removeItem('roadlog_token');state.page='login';render();return null}
+  if(r.status===204)return null;
+  const data=await r.json();
+  if(!r.ok)throw new Error(data.error||'Request failed');
+  return data;
+}
+
+function toggleTheme(){
+  theme=theme==='dark'?'light':'dark';
+  localStorage.setItem('roadlog_theme',theme);
+  document.documentElement.setAttribute('data-theme',theme);
+  render();
+}
+
+function fuelUnit(fuelType){
+  if(fuelType==='Electric')return{unit:'kWh',pricePlaceholder:'0.25',fullLabel:'Full charge',consumption:'kWh/100km',amountLabel:'kWh charged'};
+  if(fuelType==='CNG')return{unit:'kg',pricePlaceholder:'1.20',fullLabel:'Full tank',consumption:'kg/100km',amountLabel:'kg filled'};
+  return{unit:'L',pricePlaceholder:'1.459',fullLabel:'Full tank',consumption:'L/100km',amountLabel:'Liters filled'};
+}
+
+function getPeriodRange(period){
+  const now=new Date();
+  const fmt=d=>d.toISOString().slice(0,10);
+  if(period==='month'){
+    return{from:fmt(new Date(now.getFullYear(),now.getMonth(),1)),to:fmt(now)};
+  }
+  if(period==='lastmonth'){
+    return{from:fmt(new Date(now.getFullYear(),now.getMonth()-1,1)),to:fmt(new Date(now.getFullYear(),now.getMonth(),0))};
+  }
+  if(period==='30days'){
+    const d=new Date(now);d.setDate(d.getDate()-30);
+    return{from:fmt(d),to:fmt(now)};
+  }
+  if(period==='year'){
+    return{from:fmt(new Date(now.getFullYear(),0,1)),to:fmt(now)};
+  }
+  if(period==='lastyear'){
+    return{from:fmt(new Date(now.getFullYear()-1,0,1)),to:fmt(new Date(now.getFullYear()-1,11,31))};
+  }
+  if(period==='custom'&&state.customFrom&&state.customTo){
+    return{from:state.customFrom,to:state.customTo};
+  }
+  return null;
+}
+
+async function loadVehicleComparison(range){
+  const el=document.getElementById('vehicle-comparison');
+  if(!el)return;
+  const results=[];
+  const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
+  for(const v of state.vehicles){
+    const qp=range?`?from=${range.from}&to=${range.to}`:'';
+    const st=await api(`/vehicles/${v.id}/stats${qp}`);
+    results.push({name:v.name,spent:st.totalSpent,fillups:st.totalFillups,color:v.color});
+  }
+  const maxSpent=Math.max(...results.map(r=>r.spent),1);
+  el.innerHTML=`<div class="chart-section"><h3>Spending by Vehicle</h3>${results.map((r,i)=>`<div class="chart-row"><span class="chart-label">${r.name}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(r.spent/maxSpent*100).toFixed(0)}%;background:${r.color||colors[i%colors.length]}"></div></div><span class="chart-val">${curr}${r.spent.toFixed(0)}</span></div>`).join('')}</div>`;
+}
+
+function navBar(active){
+  return `<div class="nav">
+    <button class="${active==='dashboard'?'active':''}" onclick="state.page='dashboard';render()">Dashboard</button>
+    <button class="${active==='vehicles'?'active':''}" onclick="state.page='vehicles';render()">Vehicles</button>
+    <button class="${active==='settings'?'active':''}" onclick="state.page='settings';render()">Settings</button>
+    <button style="margin-left:auto" onclick="toggleTheme()">${theme==='dark'?'☀️':'🌙'}</button>
+    <button onclick="logout()" style="background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--muted)">Logout</button>
+  </div>`;
+}
+
+async function render(pushState=true){
+  const app=document.getElementById('app');
+  if(pushState)history.pushState({page:state.page,vehicleId:state.vehicleId},'','/');
+
+  if(state.page==='login'){
+    app.innerHTML=`<h1 style="text-align:center;margin-top:2rem">🚗 Roadlog</h1><p style="text-align:center;color:var(--muted);margin-bottom:2rem">Vehicle expense tracker</p>
+    <form class="card" onsubmit="doLogin(event)"><div id="err"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="a_email" required placeholder="you@example.com"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="a_pass" required placeholder="••••••"></div>
+    <button class="btn btn-primary btn-block" type="submit">Log In</button></form>
+    <p style="text-align:center;margin-top:1rem"><button class="link" onclick="state.page='register';render()">No account? Register</button></p>`;
+  } else if(state.page==='register'){
+    app.innerHTML=`<h1 style="text-align:center;margin-top:2rem">🚗 Roadlog</h1><p style="text-align:center;color:var(--muted);margin-bottom:2rem">Create your account</p>
+    <form class="card" onsubmit="doRegister(event)"><div id="err"></div>
+    <div class="form-group"><label>Name</label><input id="r_name" required placeholder="Your name"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="r_email" required placeholder="you@example.com"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="r_pass" required minlength="4" placeholder="Min 4 characters"></div>
+    <button class="btn btn-primary btn-block" type="submit">Register</button></form>
+    <p style="text-align:center;margin-top:1rem"><button class="link" onclick="state.page='login';render()">Already have an account? Log in</button></p>`;
+
+  } else if(state.page==='dashboard'){
+    if(!state.period)state.period='year';
+    if(!state.customFrom)state.customFrom='';
+    if(!state.customTo)state.customTo='';
+    const range=getPeriodRange(state.period);
+    const qp=range?`?from=${range.from}&to=${range.to}`:'';
+    try{state.dashboard=await api('/dashboard'+qp);const st=await api('/settings');curr=currencies[st.currency]||st.currency;state.vehicles=await api('/vehicles')}catch(e){return}
+    const d=state.dashboard;d.monthly=d.monthly||[];
+    const maxSpent=Math.max(...d.monthly.map(m=>m.totalSpent),1);
+    app.innerHTML=`${navBar('dashboard')}<div class="header"><h1>Dashboard</h1><select class="period-select" onchange="state.period=this.value;render()"><option value="month" ${state.period==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.period==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.period==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.period==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.period==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.period==='all'?'selected':''}>All Time</option><option value="custom" ${state.period==='custom'?'selected':''}>Custom...</option></select></div>
+    ${state.period==='custom'?`<div style="display:flex;gap:.5rem;margin-bottom:1rem"><input type="date" value="${state.customFrom}" onchange="state.customFrom=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"><input type="date" value="${state.customTo}" onchange="state.customTo=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"></div>`:''}
+    <div style="margin-bottom:1rem;display:flex;gap:.5rem"><button class="btn btn-primary" onclick="quickAddExpense()">+ Fill-up</button><button class="btn" style="background:#10b981" onclick="quickAddOtherExpense()">+ Expense</button></div>
+    <div class="stats">
+      <div class="stat-card"><div class="value">${d.totalVehicles}</div><div class="label">Vehicles</div></div>
+      <div class="stat-card"><div class="value">${d.totalFillups}</div><div class="label">Fill-ups</div></div>
+      <div class="stat-card"><div class="value">${curr}${d.fuelSpent.toFixed(0)}</div><div class="label">Fuel</div></div>
+      <div class="stat-card"><div class="value">${curr}${d.expenseSpent.toFixed(0)}</div><div class="label">Expenses</div></div>
+      <div class="stat-card" style="grid-column:span 2"><div class="value">${curr}${d.totalSpent.toFixed(2)}</div><div class="label">Total Spent</div></div>
+    </div>
+    <div class="chart-section"><h3>Monthly Spending</h3>
+    ${d.monthly.length?(()=>{
+      // Generate full month range for display
+      let months;
+      if(state.period==='year'){
+        // Show all months Jan-current
+        const now=new Date();months=[];
+        for(let m=0;m<=now.getMonth();m++){const key=now.getFullYear()+'-'+String(m+1).padStart(2,'0');months.push(d.monthly.find(x=>x.month===key)||{month:key,totalSpent:0,fillups:0})}
+      } else if(state.period==='all'||state.period==='custom'){
+        // Last 6 months max
+        months=[...d.monthly].reverse();if(months.length>6)months=months.slice(months.length-6);
+      } else {
+        months=[...d.monthly].reverse();
+      }
+      const maxSpent=Math.max(...months.map(m=>m.totalSpent),1);
+      const pv=d.perVehicle||[];
+      const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
+      const legend=pv.map((v,i)=>'<span style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem"><span style="width:10px;height:10px;border-radius:2px;background:'+(v.color||colors[i%colors.length])+'"></span>'+v.vehicleName+'</span>').join('');
+      let bars='';
+      months.forEach(m=>{
+        const total=m.totalSpent;
+        let group='<div style="flex:1;min-width:30px;display:flex;flex-direction:column;align-items:center;gap:0">';
+        group+='<div style="font-size:.65rem;color:var(--muted);margin-bottom:2px">'+curr+total.toFixed(0)+'</div>';
+        group+='<div style="display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:120px">';
+        pv.forEach((v,i)=>{
+          const vm=(v.monthly||[]).find(x=>x.month===m.month);
+          const spent=vm?vm.totalSpent:0;
+          const h=maxSpent>0?(spent/maxSpent*100).toFixed(0):0;
+          group+='<div class="bar-tip" style="width:100%;height:'+h+'%;background:'+(v.color||colors[i%colors.length])+';min-height:'+(spent>0?'2px':'0')+'" data-tip="'+v.vehicleName+': '+curr+spent.toFixed(0)+'"></div>';
+        });
+        group+='</div></div>';
+        bars+=group;
+      });
+      const labels=months.map(m=>'<span>'+m.month.slice(5)+'/'+m.month.slice(0,4)+'</span>').join('');
+      return '<div style="font-size:.75rem;margin-bottom:.5rem">'+legend+'</div><div style="display:flex;align-items:flex-end;gap:4px;padding:0 .25rem">'+bars+'</div><div class="vbar-labels">'+labels+'</div><div style="text-align:right;font-size:.8rem;color:var(--muted);margin-top:.5rem">Period total: '+curr+d.totalSpent.toFixed(2)+'</div>';
+    })():'<p class="empty">No data for this period.</p>'}
+    </div>
+    <div id="vehicle-comparison"></div>`;
+    if(state.vehicles.length>1)loadVehicleComparison(range);
+
+  } else if(state.page==='vehicles'){
+    try{state.vehicles=await api('/vehicles')}catch(e){return}
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><h1>Vehicles</h1><button class="btn btn-primary" onclick="showAddVehicle()">+ Vehicle</button></div><div id="vform"></div><div id="vlist">${state.vehicles.length?state.vehicles.map(v=>`<div class="card" onclick="openVehicle(${v.id})"><div style="display:flex;align-items:center;gap:.5rem"><span style="width:12px;height:12px;border-radius:50%;background:${v.color||'#3b82f6'};flex-shrink:0"></span><div><strong>${v.name}</strong><div style="color:var(--muted);font-size:.85rem">${v.year||''} ${v.make||''} ${v.model||''} · ${v.plate||''} · ${v.fuelType||'—'}</div></div></div></div>`).join(''):'<p class="empty">No vehicles yet. Add one to get started.</p>'}</div>`;
+
+  } else if(state.page==='detail'){
+    let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
+    if(!state.vPeriod)state.vPeriod='all';
+    const range=getPeriodRange(state.vPeriod);
+    const qp=range?`?from=${range.from}&to=${range.to}`:'';
+    try{[state.fillups,state.stats]=await Promise.all([api(`/vehicles/${state.vehicleId}/fillups`),api(`/vehicles/${state.vehicleId}/stats${qp}`)])}catch(e){return}
+    let chartData=[];try{chartData=await api(`/vehicles/${state.vehicleId}/chart${qp}`)||[]}catch(e){}
+    const s=state.stats;const u=fuelUnit(vehicle.fuelType);
+    const consumption=chartData.filter(p=>p.consumption>0);
+    const maxCons=Math.max(...consumption.map(p=>p.consumption),1);
+    const maxPrice=Math.max(...chartData.map(p=>p.pricePerUnit),1);
+    let expenses=[];try{expenses=await api(`/vehicles/${state.vehicleId}/expenses`)}catch(e){}
+    const expTotal=expenses.reduce((s,e)=>s+e.amount,0);
+    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><div><button class="btn btn-sm" style="background:var(--border);margin-right:.5rem" onclick="editVehicle(${state.vehicleId})">✏️</button><button class="btn btn-sm" style="background:var(--border);margin-right:.5rem" onclick="startImport(${state.vehicleId})">⬆ Import</button><button class="btn btn-sm" style="background:var(--border);margin-right:.5rem" onclick="exportCSV(${state.vehicleId})">⬇ CSV</button><button class="btn btn-primary btn-sm" style="margin-right:.5rem" onclick="goFillup()">+ Fill-up</button><button class="btn btn-sm" style="background:#10b981" onclick="goExpense()">+ Expense</button></div></div>
+    <div class="header"><h2 style="margin:0">${vehicle.name}</h2><select class="period-select" onchange="state.vPeriod=this.value;render()"><option value="month" ${state.vPeriod==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.vPeriod==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.vPeriod==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.vPeriod==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.vPeriod==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.vPeriod==='all'?'selected':''}>All Time</option></select></div>
+    <div class="stats"><div class="stat-card"><div class="value">${s.totalFillups}</div><div class="label">Fill-ups</div></div><div class="stat-card"><div class="value">${curr}${(s.totalSpent+expTotal).toFixed(0)}</div><div class="label">Total Spent</div></div><div class="stat-card"><div class="value">${s.avgConsumption.toFixed(1)}</div><div class="label">${u.consumption}</div></div><div class="stat-card"><div class="value">${s.totalDistance.toFixed(0)}</div><div class="label">km driven</div></div></div>
+    ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
+    ${chartData.length>1?`<div class="chart-section"><h3>Price Trend (${curr}/${u.unit})</h3><div class="vbar-chart">${chartData.map(p=>`<div class="vbar bar-tip" style="height:${(p.pricePerUnit/maxPrice*100).toFixed(0)}%;background:#f59e0b" data-tip="${p.date.slice(5)}: ${curr}${p.pricePerUnit.toFixed(3)}"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)"><span>${chartData[0].date.slice(5)}</span><span>${chartData[chartData.length-1].date.slice(5)}</span></div></div>`:''}
+    <h2>Fill-up History</h2>${state.fillups.length?state.fillups.map(f=>`<div class="card" onclick="editFillup(${f.id})"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} km · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div>`).join(''):'<p class="empty">No fill-ups yet.</p>'}
+    <h2 style="margin-top:1rem">Expenses</h2>${expenses.length?expenses.map(e=>`<div class="card" onclick="editExpense(${e.id},${state.vehicleId})"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div>`).join(''):'<p class="empty">No expenses yet.</p>'}`;
+
+  } else if(state.page==='fillup'){
+    let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
+    try{state.prefill=await api(`/vehicles/${state.vehicleId}/fillups/prefill`)}catch(e){return}
+    const p=state.prefill;
+    const u=fuelUnit(vehicle.fuelType);
+    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Fill-up</h2></div>
+    <form onsubmit="submitFillup(event)">
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="f_date" required value="${new Date().toISOString().slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Odometer (km)</label><input type="number" step="1" id="f_odo" required value="${p.odometer||''}" placeholder="Current reading">${p.odometer?'<div class="prefill-hint">Pre-filled: last was '+p.odometer+' km</div>':''}</div>
+    <div class="form-group"><label>Amount (${u.unit})</label><input type="number" step="0.01" id="f_fuel" required placeholder="${u.amountLabel}" oninput="calcTotal()"></div>
+    <div class="form-group"><label>Price per ${u.unit} (${curr})</label><input type="number" step="0.001" id="f_price" required value="${p.pricePerUnit||''}" placeholder="e.g. ${u.pricePlaceholder}" oninput="calcTotal()">${p.pricePerUnit?'<div class="prefill-hint">Pre-filled from last entry</div>':''}</div>
+    <div class="form-group"><label>Total Cost (${curr})</label><input type="number" step="0.01" id="f_total" placeholder="Auto-calculated" oninput="this.dataset.manual='1'"></div>
+    <div class="form-group" style="position:relative"><label>Station</label><input id="f_station" value="${p.station||''}" placeholder="Type or select..." autocomplete="off" onfocus="this.select();showStations()" oninput="filterStations()" onblur="setTimeout(()=>{const d=document.getElementById('station-dropdown');if(d)d.style.display='none'},200)">${p.station?'<div class="prefill-hint">Pre-filled from last entry</div>':''}<div id="station-dropdown" class="dropdown-menu"></div></div>
+    ${vehicle.fuelType!=='Electric'?'<div class="form-group" style="display:flex;gap:.75rem;align-items:center"><button type="button" class="toggle '+(p.fullTank!==false?'on':'')+'" id="f_full_btn" onclick="this.classList.toggle(\'on\')"></button><label style="margin:0">'+u.fullLabel+'</label></div>':''}
+    ${vehicle.fuelType!=='Electric'?'<div class="form-group" style="display:flex;gap:.75rem;align-items:center"><button type="button" class="toggle" id="f_missed_btn" onclick="this.classList.toggle(\'on\')"></button><label style="margin:0">Missed a fill-up before this one?</label></div>':''}
+    <div class="form-group"><label>Notes</label><input id="f_notes" placeholder="Optional"></div>
+    <button class="btn btn-primary btn-block" type="submit">Save</button></form>`;
+
+  } else if(state.page==='editFillup'){
+    let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
+    const f=state.editingFillup;const u=fuelUnit(vehicle.fuelType);
+    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Fill-up</h2></div>
+    <form onsubmit="submitEditFillup(event)">
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ef_date" required value="${f.date.slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Odometer (km)</label><input type="number" step="1" id="ef_odo" required value="${f.odometer}"></div>
+    <div class="form-group"><label>Amount (${u.unit})</label><input type="number" step="0.01" id="ef_fuel" required value="${f.fuelAmount}"></div>
+    <div class="form-group"><label>Price per ${u.unit} (${curr})</label><input type="number" step="0.001" id="ef_price" required value="${f.pricePerUnit}"></div>
+    <div class="form-group"><label>Total Cost (${curr})</label><input type="number" step="0.01" id="ef_total" value="${f.totalCost}"></div>
+    <div class="form-group"><label>Station</label><input id="ef_station" value="${f.station||''}"></div>
+    ${vehicle.fuelType!=='Electric'?'<div class="form-group" style="display:flex;gap:.75rem;align-items:center"><button type="button" class="toggle '+(f.fullTank?'on':'')+'" id="ef_full_btn" onclick="this.classList.toggle(\'on\')"></button><label style="margin:0">'+u.fullLabel+'</label></div>':''}
+    ${vehicle.fuelType!=='Electric'?'<div class="form-group" style="display:flex;gap:.75rem;align-items:center"><button type="button" class="toggle '+(f.missedPrevious?'on':'')+'" id="ef_missed_btn" onclick="this.classList.toggle(\'on\')"></button><label style="margin:0">Missed a fill-up before this one?</label></div>':''}
+    <div class="form-group"><label>Notes</label><input id="ef_notes" value="${f.notes||''}"></div>
+    <button class="btn btn-primary btn-block" type="submit">Save</button>
+    <button type="button" class="btn btn-block" style="background:#ef4444;margin-top:.5rem" onclick="deleteFillup(${f.id})">Delete</button>
+    </form>`;
+
+  } else if(state.page==='addExpense'){
+    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Expense</h2></div>
+    <form onsubmit="submitExpense(event)">
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ex_date" required value="${new Date().toISOString().slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Amount (${curr})</label><input type="number" step="0.01" id="ex_amount" required placeholder="e.g. 45.00"></div>
+    <div class="form-group"><label>Category</label><select id="ex_cat"><option>Insurance</option><option>Service</option><option>Repair</option><option>Tires</option><option>Car Wash</option><option>Parking</option><option>Tolls</option><option>Tax</option><option>Other</option></select></div>
+    <div class="form-group"><label>Notes</label><input id="ex_notes" placeholder="Optional"></div>
+    <button class="btn btn-primary btn-block" type="submit">Save</button></form>`;
+
+  } else if(state.page==='editExpense'){
+    const e=state.editingExpense;
+    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Expense</h2></div>
+    <form onsubmit="submitEditExpense(event)">
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="eex_date" required value="${e.date.slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Amount (${curr})</label><input type="number" step="0.01" id="eex_amount" required value="${e.amount}"></div>
+    <div class="form-group"><label>Category</label><select id="eex_cat">${['Insurance','Service','Repair','Tires','Car Wash','Parking','Tolls','Tax','Other'].map(c=>`<option ${c===e.category?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Notes</label><input id="eex_notes" value="${e.notes||''}"></div>
+    <button class="btn btn-primary btn-block" type="submit">Save</button>
+    <button type="button" class="btn btn-block" style="background:#ef4444;margin-top:.5rem" onclick="deleteExpense(${e.id})">Delete</button></form>`;
+
+  } else if(state.page==='import'){
+    const fields=[{key:'date',label:'Date *',required:true},{key:'odometer',label:'Odometer *',required:true},{key:'fuelAmount',label:'Fuel Amount *',required:true},{key:'pricePerUnit',label:'Price per Unit'},{key:'totalCost',label:'Total Cost'},{key:'station',label:'Station'},{key:'fullTank',label:'Full Tank'},{key:'notes',label:'Notes'}];
+    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Back</button><h2>Import CSV</h2></div>
+    ${!state.csvHeaders?`<div class="card" style="cursor:default"><p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Upload a CSV file with fill-up data. You will map columns in the next step.</p><input type="file" id="csv_file" accept=".csv,.txt" style="margin-bottom:1rem"><br><button class="btn btn-primary" onclick="uploadCSV()">Upload & Parse</button></div>`
+    :`<div class="card" style="cursor:default"><h3 style="margin-bottom:.75rem">Map Columns</h3><p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Assign your CSV columns to Roadlog fields. Fields marked * are required.</p>
+    ${fields.map(f=>`<div class="form-group"><label>${f.label}</label><select id="map_${f.key}" onchange="renderMappedPreview()"><option value="-1">— skip —</option>${state.csvHeaders.map((h,i)=>`<option value="${i}" ${state.csvGuess&&state.csvGuess[f.key]===i?'selected':''}>${h}</option>`).join('')}</select></div>`).join('')}
+    <div class="form-group"><label>Date Format</label><select id="map_dateformat"><option value="2006-01-02">YYYY-MM-DD</option><option value="02/01/2006">DD/MM/YYYY</option><option value="01/02/2006">MM/DD/YYYY</option><option value="02.01.2006">DD.MM.YYYY</option><option value="2.1.2006">D.M.YYYY</option><option value="Jan 2, 2006">Mon DD, YYYY (Mar 20, 2026)</option></select></div>
+    <div style="margin-bottom:1rem"><h3 style="margin-bottom:.5rem">Mapped Preview</h3><div id="import-preview" style="overflow-x:auto"></div></div>
+    <button class="btn btn-primary btn-block" onclick="doImport()">Import ${state.csvData?state.csvData.length:0} rows</button>
+    <div style="margin-top:.75rem;display:flex;gap:.5rem;align-items:center"><input type="checkbox" id="import_clear"><label for="import_clear" style="font-size:.85rem;color:var(--muted);margin:0">Delete existing fill-ups for this vehicle before import</label></div>
+    <p style="font-size:.75rem;color:var(--muted);margin-top:.5rem">Units like km, Lt, kWh, € are stripped automatically. Duplicates (same date + odometer) are skipped.</p></div>`}`;
+    if(state.csvHeaders)setTimeout(renderMappedPreview,0);
+
+  } else if(state.page==='pickVehicle'){
+    const target=state.pickTarget||'fillup';
+    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='dashboard';render()">← Back</button><h2>Select Vehicle</h2></div>
+    ${state.vehicles.map(v=>`<div class="card" onclick="state.vehicleId=${v.id};state.page='${target}';render()"><div style="display:flex;align-items:center;gap:.5rem"><span style="width:12px;height:12px;border-radius:50%;background:${v.color||'#3b82f6'};flex-shrink:0"></span><div><strong>${v.name}</strong><div style="color:var(--muted);font-size:.85rem">${v.year||''} ${v.make||''} ${v.model||''} · ${v.fuelType||''}</div></div></div></div>`).join('')}`;
+
+  } else if(state.page==='editVehicle'){
+    let v;try{v=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
+    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Vehicle</h2></div>
+    <form onsubmit="submitEditVehicle(event)">
+    <div class="form-group"><label>Name</label><input id="ev_name" required value="${v.name}"></div>
+    <div class="form-group"><label>Make</label><input id="ev_make" value="${v.make||''}"></div>
+    <div class="form-group"><label>Model</label><input id="ev_model" value="${v.model||''}"></div>
+    <div class="form-group"><label>Year</label><input type="number" id="ev_year" value="${v.year||''}"></div>
+    <div class="form-group"><label>Plate</label><input id="ev_plate" value="${v.plate||''}"></div>
+    <div class="form-group"><label>Fuel Type</label><select id="ev_fuel">${['Petrol','Diesel','LPG','CNG','Electric','Hybrid'].map(f=>`<option ${f===v.fuelType?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Color</label><div style="display:flex;gap:.5rem;flex-wrap:wrap" id="ev_color_pick">${['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'].map(c=>`<div onclick="pickColor(this,'ev_color')" data-c="${c}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===(v.color||'#3b82f6')?'white':'transparent'}"></div>`).join('')}</div><input type="hidden" id="ev_color" value="${v.color||'#3b82f6'}"></div>
+    <button class="btn btn-primary btn-block" type="submit">Save Changes</button>
+    <button type="button" class="btn btn-block" style="background:#ef4444;margin-top:.5rem" onclick="deleteVehicle(${v.id})">Delete Vehicle</button>
+    </form>`;
+
+  } else if(state.page==='settings'){
+    try{state.settings=await api('/settings');state.users=await api('/users');state.allStations=await api('/stations')}catch(e){return}
+    const s=state.settings;
+    const fuelTypes=[...new Set(state.allStations.map(s=>s.fuelType))].sort();
+    app.innerHTML=`${navBar('settings')}<h1>Settings</h1>
+    <div class="card" style="cursor:default">
+      <h2 style="margin-bottom:.5rem">Pre-fill options</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">Choose which fields to auto-fill from last entry</p>
+      <div class="setting-row"><span>Pre-fill odometer</span><button class="toggle ${s.prefillOdometer?'on':''}" onclick="toggleSetting('prefillOdometer')"></button></div>
+      <div class="setting-row"><span>Pre-fill price</span><button class="toggle ${s.prefillPrice?'on':''}" onclick="toggleSetting('prefillPrice')"></button></div>
+      <div class="setting-row"><span>Pre-fill station</span><button class="toggle ${s.prefillStation?'on':''}" onclick="toggleSetting('prefillStation')"></button></div>
+      <div class="setting-row"><span>Currency</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeCurrency(this.value)">${Object.entries(currencies).map(([k,v])=>'<option value="'+k+'" '+(k===s.currency?'selected':'')+'>'+v+' ('+k+')</option>').join('')}</select></div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Saved Stations</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Manage your saved stations by fuel type</p>
+      ${fuelTypes.length?fuelTypes.map(ft=>`<div style="margin-bottom:1rem"><strong style="font-size:.85rem;color:var(--accent)">${ft}</strong>${state.allStations.filter(st=>st.fuelType===ft).map(st=>`<div class="setting-row"><span id="sn-${st.id}">${st.name}</span><div><button class="btn btn-sm" style="background:var(--border);margin-right:.25rem" onclick="renameStation(${st.id})">✏️</button><button class="btn btn-sm" style="background:#ef4444" onclick="delStation(${st.id})">✕</button></div></div>`).join('')}</div>`).join(''):'<p style="color:var(--muted);font-size:.85rem">No saved stations yet. Add them when creating a fill-up.</p>'}
+      <div style="display:flex;gap:.5rem;margin-top:.5rem">
+        <select id="new_st_fuel" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem"><option>Petrol</option><option>Diesel</option><option>LPG</option><option>CNG</option><option>Electric</option></select>
+        <input id="new_st_name" placeholder="Station name" style="flex:1;padding:.4rem .6rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)">
+        <button class="btn btn-sm btn-primary" onclick="addStationFromSettings()">+</button>
+      </div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Users</h2>
+      ${state.users.map(u=>`<div class="setting-row"><span>${u.name} <span style="color:var(--muted);font-size:.8rem">${u.email}</span></span><div><button class="btn btn-sm" style="background:var(--border);margin-right:.25rem" onclick="changeUserPw(${u.id},'${u.name}')">🔑</button><button class="btn btn-sm" style="background:#ef4444" onclick="deleteUser(${u.id},'${u.name}')">✕</button></div></div>`).join('')}
+      <div style="margin-top:.75rem"><button class="btn btn-sm btn-primary" onclick="showAddUser()">+ Add User</button></div>
+      <div id="userform"></div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Backup & Restore</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Download a full backup or restore from a previous export</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <a class="btn btn-primary btn-sm" href="/api/backup" onclick="this.href='/api/backup';this.setAttribute('download','');addAuthToLink(this)">⬇ Download Backup</a>
+        <button class="btn btn-sm" style="background:var(--border)" onclick="document.getElementById('restoreFile').click()">⬆ Restore from File</button>
+        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(this)">
+      </div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Appearance</h2>
+      <div class="setting-row"><span>Theme</span><button class="toggle ${theme==='light'?'on':''}" onclick="toggleTheme()"></button><span style="font-size:.8rem;color:var(--muted)">${theme==='dark'?'Dark':'Light'}</span></div>
+    </div>
+
+    <button class="btn btn-sm" style="background:var(--border);margin-top:1rem" onclick="logout()">Logout</button>`;
+  }
+}
+
+async function toggleSetting(key){
+  state.settings[key]=!state.settings[key];
+  await api('/settings',{method:'PUT',body:JSON.stringify(state.settings)});
+  render();
+}
+async function changeCurrency(val){
+  state.settings.currency=val;curr=currencies[val]||val;
+  await api('/settings',{method:'PUT',body:JSON.stringify(state.settings)});
+  render();
+}
+async function renameStation(id){
+  const st=state.allStations.find(s=>s.id===id);
+  const name=prompt('Rename station:',st?st.name:'');
+  if(name&&name!==st.name){
+    await api(`/stations/${id}`,{method:'DELETE'});
+    await api('/stations',{method:'POST',body:JSON.stringify({name:name,fuelType:st.fuelType})});
+    render();
+  }
+}
+async function delStation(id){
+  await api(`/stations/${id}`,{method:'DELETE'});
+  render();
+}
+async function addStationFromSettings(){
+  const name=document.getElementById('new_st_name').value.trim();
+  const fuelType=document.getElementById('new_st_fuel').value;
+  if(!name)return;
+  await api('/stations',{method:'POST',body:JSON.stringify({name,fuelType})});
+  render();
+}
+
+function showErr(msg){const el=document.getElementById('err');if(el)el.innerHTML=`<div class="error">${msg}</div>`}
+
+async function doLogin(e){
+  e.preventDefault();
+  try{
+    const res=await api('/login',{method:'POST',body:JSON.stringify({email:document.getElementById('a_email').value,password:document.getElementById('a_pass').value})});
+    token=res.token;localStorage.setItem('roadlog_token',token);state.page='dashboard';render();
+  }catch(err){showErr(err.message)}
+}
+
+async function doRegister(e){
+  e.preventDefault();
+  try{
+    const res=await api('/register',{method:'POST',body:JSON.stringify({name:document.getElementById('r_name').value,email:document.getElementById('r_email').value,password:document.getElementById('r_pass').value})});
+    token=res.token;localStorage.setItem('roadlog_token',token);state.page='dashboard';render();
+  }catch(err){showErr(err.message)}
+}
+
+function logout(){token=null;localStorage.removeItem('roadlog_token');state.page='login';render()}
+function openVehicle(id){state.vehicleId=id;state.page='detail';render()}
+function goFillup(){state.page='fillup';render()}
+function calcTotal(){
+  const el=document.getElementById('f_total');
+  if(el.dataset.manual)return;
+  const fuel=+document.getElementById('f_fuel').value,price=+document.getElementById('f_price').value;
+  el.value=fuel&&price?(fuel*price).toFixed(2):'';
+}
+
+let stationsList=[];
+let stationsLoaded=false;
+async function showStations(){
+  const v=await api(`/vehicles/${state.vehicleId}`);
+  stationsList=await api(`/stations?fuelType=${v.fuelType}`)||[];
+  stationsLoaded=true;
+  renderStationDropdown(true);
+}
+function filterStations(){
+  if(!stationsLoaded)return;
+  renderStationDropdown(false);
+}
+function renderStationDropdown(showAll){
+  const dd=document.getElementById('station-dropdown');
+  const val=document.getElementById('f_station').value.toLowerCase().trim();
+  const filtered=showAll?stationsList:stationsList.filter(s=>s.name.toLowerCase().includes(val));
+  dd.style.display='block';
+  let html=filtered.map(s=>`<div class="dropdown-item" onmousedown="pickStation('${s.name.replace(/'/g,"\\'")}')" ><span>${s.name}</span><button class="del-btn" onmousedown="event.stopPropagation();removeStation(${s.id})">✕</button></div>`).join('');
+  if(val&&!stationsList.find(s=>s.name.toLowerCase()===val)){
+    html+=`<div class="dropdown-add" onmousedown="saveAndPickStation()">+ Save "${document.getElementById('f_station').value}"</div>`;
+  }
+  if(!html){dd.style.display='none';return}
+  dd.innerHTML=html;
+}
+function pickStation(name){
+  document.getElementById('f_station').value=name;
+  document.getElementById('station-dropdown').style.display='none';
+}
+async function saveAndPickStation(){
+  const name=document.getElementById('f_station').value;
+  const v=await api(`/vehicles/${state.vehicleId}`);
+  const saved=await api('/stations',{method:'POST',body:JSON.stringify({name:name,fuelType:v.fuelType})});
+  stationsList.push(saved);
+  document.getElementById('station-dropdown').style.display='none';
+}
+async function removeStation(id){
+  await api(`/stations/${id}`,{method:'DELETE'});
+  stationsList=stationsList.filter(s=>s.id!==id);
+  renderStationDropdown(true);
+}
+function editVehicle(id){state.vehicleId=id;state.page='editVehicle';render()}
+function goExpense(){state.page='addExpense';render()}
+async function submitExpense(e){
+  e.preventDefault();
+  await api(`/vehicles/${state.vehicleId}/expenses`,{method:'POST',body:JSON.stringify({date:new Date(document.getElementById('ex_date').value).toISOString(),amount:+document.getElementById('ex_amount').value,category:document.getElementById('ex_cat').value,notes:document.getElementById('ex_notes').value})});
+  openVehicle(state.vehicleId);
+}
+function editExpense(id,vehicleId){
+  state.vehicleId=vehicleId;
+  state.editingExpense=null;
+  api(`/vehicles/${vehicleId}/expenses`).then(exps=>{state.editingExpense=exps.find(e=>e.id===id);state.page='editExpense';render()});
+}
+async function submitEditExpense(e){
+  e.preventDefault();
+  const ex=state.editingExpense;
+  await api(`/expenses/${ex.id}`,{method:'PUT',body:JSON.stringify({date:new Date(document.getElementById('eex_date').value).toISOString(),amount:+document.getElementById('eex_amount').value,category:document.getElementById('eex_cat').value,notes:document.getElementById('eex_notes').value})});
+  openVehicle(state.vehicleId);
+}
+async function deleteExpense(id){
+  if(confirm('Delete this expense?')){await api(`/expenses/${id}`,{method:'DELETE'});openVehicle(state.vehicleId)}
+}
+function editFillup(id){
+  state.editingFillup=state.fillups.find(f=>f.id===id);
+  state.page='editFillup';render();
+}
+async function submitEditFillup(e){
+  e.preventDefault();
+  const f=state.editingFillup;
+  const fuel=+document.getElementById('ef_fuel').value,price=+document.getElementById('ef_price').value;
+  await api(`/fillups/${f.id}`,{method:'PUT',body:JSON.stringify({date:new Date(document.getElementById('ef_date').value).toISOString(),odometer:+document.getElementById('ef_odo').value,fuelAmount:fuel,pricePerUnit:price,totalCost:+document.getElementById('ef_total').value||(fuel*price),station:document.getElementById('ef_station').value,fullTank:document.getElementById('ef_full_btn')?document.getElementById('ef_full_btn').classList.contains('on'):true,missedPrevious:document.getElementById('ef_missed_btn')?document.getElementById('ef_missed_btn').classList.contains('on'):false,notes:document.getElementById('ef_notes').value})});
+  openVehicle(state.vehicleId);
+}
+async function deleteFillup(id){
+  if(confirm('Delete this fill-up?')){await api(`/fillups/${id}`,{method:'DELETE'});openVehicle(state.vehicleId)}
+}
+async function submitEditVehicle(e){
+  e.preventDefault();
+  await api(`/vehicles/${state.vehicleId}`,{method:'PUT',body:JSON.stringify({name:document.getElementById('ev_name').value,make:document.getElementById('ev_make').value,model:document.getElementById('ev_model').value,year:+document.getElementById('ev_year').value,plate:document.getElementById('ev_plate').value,fuelType:document.getElementById('ev_fuel').value,color:document.getElementById('ev_color').value})});
+  openVehicle(state.vehicleId);
+}
+async function deleteVehicle(id){
+  if(confirm('Delete this vehicle and all its fill-ups? This cannot be undone.')){await api(`/vehicles/${id}`,{method:'DELETE'});state.page='vehicles';render()}
+}
+async function quickAddExpense(){
+  const vehicles=await api('/vehicles');
+  if(!vehicles||vehicles.length===0){alert('Add a vehicle first');state.page='vehicles';render();return}
+  if(vehicles.length===1){state.vehicleId=vehicles[0].id;state.page='fillup';render();return}
+  state.pickTarget='fillup';state.page='pickVehicle';state.vehicles=vehicles;render();
+}
+async function quickAddOtherExpense(){
+  const vehicles=await api('/vehicles');
+  if(!vehicles||vehicles.length===0){alert('Add a vehicle first');state.page='vehicles';render();return}
+  if(vehicles.length===1){state.vehicleId=vehicles[0].id;state.page='addExpense';render();return}
+  state.pickTarget='addExpense';state.page='pickVehicle';state.vehicles=vehicles;render();
+}
+
+function showAddVehicle(){
+  document.getElementById('vform').innerHTML=`<form class="card" onsubmit="submitVehicle(event)">
+  <div class="form-group"><label>Name</label><input id="v_name" required placeholder="e.g. Daily Driver"></div>
+  <div class="form-group"><label>Make</label><input id="v_make" placeholder="e.g. Volkswagen"></div>
+  <div class="form-group"><label>Model</label><input id="v_model" placeholder="e.g. Golf"></div>
+  <div class="form-group"><label>Year</label><input type="number" id="v_year" value="${new Date().getFullYear()}"></div>
+  <div class="form-group"><label>Plate</label><input id="v_plate"></div>
+  <div class="form-group"><label>Fuel Type</label><select id="v_fuel"><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="LPG">LPG</option><option value="CNG">CNG</option><option value="Electric">Electric</option><option value="Hybrid">Hybrid</option></select></div>
+  <div class="form-group"><label>Color</label><div style="display:flex;gap:.5rem;flex-wrap:wrap">${['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'].map((c,i)=>`<div onclick="pickColor(this,'v_color')" data-c="${c}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${i===0?'white':'transparent'}"></div>`).join('')}</div><input type="hidden" id="v_color" value="#3b82f6"></div>
+  <button class="btn btn-primary btn-block" type="submit">Add Vehicle</button></form>`;
+}
+
+async function submitVehicle(e){
+  e.preventDefault();
+  await api('/vehicles',{method:'POST',body:JSON.stringify({name:document.getElementById('v_name').value,make:document.getElementById('v_make').value,model:document.getElementById('v_model').value,year:+document.getElementById('v_year').value,plate:document.getElementById('v_plate').value,fuelType:document.getElementById('v_fuel').value,color:document.getElementById('v_color').value})});
+  render();
+}
+function pickColor(el,inputId){
+  el.parentElement.querySelectorAll('div').forEach(d=>d.style.border='2px solid transparent');
+  el.style.border='2px solid white';
+  document.getElementById(inputId).value=el.dataset.c;
+}
+
+async function submitFillup(e){
+  e.preventDefault();
+  const fuel=+document.getElementById('f_fuel').value,price=+document.getElementById('f_price').value;
+  await api(`/vehicles/${state.vehicleId}/fillups`,{method:'POST',body:JSON.stringify({date:new Date(document.getElementById('f_date').value).toISOString(),odometer:+document.getElementById('f_odo').value,fuelAmount:fuel,pricePerUnit:price,totalCost:+document.getElementById('f_total').value||(fuel*price),station:document.getElementById('f_station').value,fullTank:document.getElementById('f_full_btn')?document.getElementById('f_full_btn').classList.contains('on'):true,missedPrevious:document.getElementById('f_missed_btn')?document.getElementById('f_missed_btn').classList.contains('on'):false,notes:document.getElementById('f_notes').value})});
+  openVehicle(state.vehicleId);
+}
+
+function showAddUser(){
+  document.getElementById('userform').innerHTML=`<form onsubmit="submitNewUser(event)" style="margin-top:.75rem"><div class="form-group"><label>Name</label><input id="nu_name" required></div><div class="form-group"><label>Email</label><input type="email" id="nu_email" required></div><div class="form-group"><label>Password</label><input type="password" id="nu_pass" required minlength="4"></div><button class="btn btn-primary btn-sm" type="submit">Create</button></form>`;
+}
+async function submitNewUser(e){
+  e.preventDefault();
+  try{await api('/users',{method:'POST',body:JSON.stringify({name:document.getElementById('nu_name').value,email:document.getElementById('nu_email').value,password:document.getElementById('nu_pass').value})});render()}catch(err){alert(err.message)}
+}
+async function changeUserPw(id,name){
+  const pw=prompt(`New password for ${name}:`);
+  if(pw)await api('/users/password',{method:'PUT',body:JSON.stringify({userId:id,newPassword:pw})});
+}
+async function deleteUser(id,name){
+  if(confirm(`Delete user "${name}"? This cannot be undone.`))await api(`/users/${id}`,{method:'DELETE'});render();
+}
+function addAuthToLink(el){
+  // For backup download, we need to use fetch with auth
+  el.onclick=async function(e){
+    e.preventDefault();
+    const r=await fetch('/api/backup',{headers:{'Authorization':'Bearer '+token}});
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='roadlog-backup.json';a.click();URL.revokeObjectURL(url);
+  };
+}
+async function exportCSV(vehicleId){
+  const r=await fetch(`/api/vehicles/${vehicleId}/export`,{headers:{'Authorization':'Bearer '+token}});
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`roadlog-vehicle-${vehicleId}.csv`;a.click();URL.revokeObjectURL(url);
+}
+function startImport(vehicleId){
+  state.vehicleId=vehicleId;state.csvHeaders=null;state.csvPreview=null;state.csvData=null;state.page='import';render();
+}
+async function uploadCSV(){
+  const file=document.getElementById('csv_file').files[0];
+  if(!file)return;
+  const text=await file.text();
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  const parse=line=>{const r=[];let cur='',inQ=false;for(const ch of line){if(ch==='"'){inQ=!inQ}else if((ch===','||ch===';')&&!inQ){r.push(cur.trim());cur=''}else{cur+=ch}}r.push(cur.trim());return r};
+  const headers=parse(lines[0]);
+  const data=lines.slice(1).map(parse).filter(r=>r.length>=headers.length-1);
+  state.csvHeaders=headers;
+  state.csvPreview=data.slice(0,5);
+  state.csvData=data;
+  state.csvGuess=guessMapping(headers,data.slice(0,5));
+  render();
+}
+function guessMapping(headers,preview){
+  const guess={};
+  const lh=headers.map(h=>h.toLowerCase());
+  const patterns={date:/date|datum|time|when/i,odometer:/odo|km|mileage|kilo|mile|distance/i,fuelAmount:/fuel|amount|quantity|liter|litre|volume|kwh|gallon/i,pricePerUnit:/price.*unit|unit.*price|price.*l|€.*l|cost.*l/i,totalCost:/total|cost|paid|amount.*€|sum|price$/i,station:/station|place|location|gas|pump|where/i,notes:/note|comment|memo|remark/i,fullTank:/full|tank|complete/i};
+  Object.entries(patterns).forEach(([field,re])=>{
+    const idx=lh.findIndex(h=>re.test(h));
+    if(idx>=0&&!Object.values(guess).includes(idx))guess[field]=idx;
+  });
+  // If totalCost and pricePerUnit both match same pattern, disambiguate by values
+  if(!guess.pricePerUnit&&!guess.totalCost){
+    lh.forEach((h,i)=>{
+      if(/price|cost/i.test(h)&&!(i in Object.values(guess))){
+        const vals=preview.map(r=>parseFloat((r[i]||'').replace(/[^0-9.,]/g,'').replace(',','.')));
+        const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+        if(avg<10)guess.pricePerUnit=i;else guess.totalCost=i;
+      }
+    });
+  }
+  return guess;
+}
+function getMappingValue(field){
+  const el=document.getElementById('map_'+field);
+  return el?+el.value:-1;
+}
+function renderMappedPreview(){
+  const fields=['date','odometer','fuelAmount','pricePerUnit','totalCost','station'];
+  const mapping={};
+  fields.forEach(f=>{const v=getMappingValue(f);if(v>=0)mapping[f]=v});
+  const el=document.getElementById('import-preview');
+  if(!el||!state.csvPreview)return;
+  const rows=state.csvPreview.map(row=>{
+    return '<tr>'+fields.map(f=>{
+      const idx=mapping[f];
+      return '<td style="padding:.3rem .5rem;border-bottom:1px solid var(--border);font-size:.8rem">'+(idx>=0?(row[idx]||'—'):'—')+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  el.innerHTML='<table style="border-collapse:collapse;width:100%"><tr>'+fields.map(f=>'<th style="padding:.3rem .5rem;border-bottom:1px solid var(--border);text-align:left;color:var(--accent);font-size:.75rem">'+f+'</th>').join('')+'</tr>'+rows+'</table>';
+}
+async function doImport(){
+  const mapping={};
+  ['date','odometer','fuelAmount','pricePerUnit','totalCost','station','fullTank','notes'].forEach(f=>{
+    const v=+document.getElementById('map_'+f).value;
+    if(v>=0)mapping[f]=v;
+  });
+  if(!('date' in mapping)||!('fuelAmount' in mapping)){alert('Date and Fuel Amount are required');return}
+  // Validate: check first 5 rows for zero values in numeric fields
+  const numFields=[{key:'odometer',label:'Odometer'},{key:'fuelAmount',label:'Fuel Amount'}];
+  const warnings=[];
+  numFields.forEach(f=>{
+    if(!(f.key in mapping))return;
+    const col=mapping[f.key];
+    const zeros=state.csvData.slice(0,5).filter(row=>{
+      const v=row[col]?row[col].replace(/[^0-9.,]/g,''):'';
+      return !v||parseFloat(v.replace(',','.'))==0;
+    }).length;
+    if(zeros>=3)warnings.push(f.label+' column looks unparseable ('+zeros+'/5 rows are zero). Values look like: "'+state.csvData[0][col]+'". Units like "km", "Lt" are stripped automatically, but check if the mapping is correct.');
+  });
+  if(warnings.length&&!confirm('⚠️ Warning:\\n\\n'+warnings.join('\\n\\n')+'\\n\\nImport anyway?'))return;
+  const dateFormat=document.getElementById('map_dateformat').value;
+  const clearFirst=document.getElementById('import_clear').checked;
+  if(clearFirst&&!confirm('This will DELETE all existing fill-ups for this vehicle before importing. Continue?'))return;
+  const res=await api('/import',{method:'POST',body:JSON.stringify({vehicleId:state.vehicleId,mapping,dateFormat,clearFirst,data:state.csvData})});
+  alert(`Imported ${res.imported} fill-ups`+(res.errors&&res.errors.length?`\n${res.errors.length} errors`:''));
+  state.csvHeaders=null;state.csvData=null;
+  openVehicle(state.vehicleId);
+}
+async function doRestore(input){
+  const file=input.files[0];if(!file)return;
+  if(!confirm('This will replace ALL data. Are you sure?'))return;
+  const text=await file.text();
+  try{
+    const res=await api('/restore',{method:'POST',body:text});
+    alert(`Restored: ${res.users} users, ${res.vehicles} vehicles, ${res.fillups} fill-ups`);
+    render();
+  }catch(err){alert('Restore failed: '+err.message)}
+}
+
+window.addEventListener('popstate',e=>{
+  if(e.state){state.page=e.state.page;state.vehicleId=e.state.vehicleId;render(false)}
+});
+render().catch(e=>{document.getElementById('app').innerHTML='<pre style="color:red;padding:1rem">Error: '+e.message+'\n'+e.stack+'</pre>'});
+</script>
+</body>
+</html>
