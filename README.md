@@ -23,7 +23,7 @@ A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expens
 ```yaml
 services:
   roadlog:
-    image: ghcr.io/stomko11/roadlog:latest
+    image: stomko11/roadlog:latest
     container_name: roadlog
     ports:
       - "3000:3000"
@@ -41,6 +41,11 @@ Open http://localhost:3000
 **Default credentials:** `admin@roadlog.local` / `roadlog`
 
 > ⚠️ Change the default password after first login.
+
+### Alternative registries
+
+- Docker Hub: `stomko11/roadlog:latest`
+- GitHub Container Registry: `ghcr.io/stomko11/roadlog:latest`
 
 ## Environment Variables
 
