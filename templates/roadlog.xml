@@ -1,0 +1,30 @@
+<Container version="2">
+  <Name>roadlog</Name>
+  <Repository>ghcr.io/stomko11/roadlog:latest</Repository>
+  <Registry>https://ghcr.io/stomko11/roadlog</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Icon>https://raw.githubusercontent.com/stomko11/roadlog/main/icon.png</Icon>
+  <WebUI>http://[IP]:[PORT:3000]</WebUI>
+  <Overview>Roadlog is a self-hosted vehicle fuel and expense tracker. Track fill-ups, expenses, consumption stats, and costs per vehicle. Includes CSV import, backup/restore, and multi-user support.</Overview>
+  <Project>https://github.com/stomko11/roadlog</Project>
+  <TemplateURL>https://raw.githubusercontent.com/stomko11/roadlog/main/templates/roadlog.xml</TemplateURL>
+  <ReadMe>https://raw.githubusercontent.com/stomko11/roadlog/main/README.md</ReadMe>
+  <Category>Productivity: Tools:</Category>
+  <ExtraSearchTerms>fuel gas mileage car vehicle expense tracker mpg consumption fillup</ExtraSearchTerms>
+  <Changes>
+## v0.2.0
+- CSV import for expenses
+- Dashboard chart shows fuel vs expense breakdown
+- Auto-create DATA_DIR on startup
+
+## v0.1.0
+- Initial release
+  </Changes>
+  <Date>2026-06-27</Date>
+  <MinVer>6.1</MinVer>
+  <License>MIT</License>
+  <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Port for the Roadlog web interface." Type="Port" Display="always" Required="true" Mask="false"/>
+  <Config Name="Data" Target="/data" Default="/mnt/user/appdata/roadlog" Mode="rw" Description="Persistent data storage (database)." Type="Path" Display="always" Required="true" Mask="false"/>
+</Container>
