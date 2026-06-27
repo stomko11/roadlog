@@ -2,6 +2,7 @@ package db
 
 import (
 	"os"
+	"path/filepath"
 	"roadlog/models"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,6 +17,7 @@ func Init() {
 	if p := os.Getenv("DATA_DIR"); p != "" && p != "/" {
 		path = p + "/roadlog.db"
 	}
+	os.MkdirAll(filepath.Dir(path), 0o755)
 	var err error
 	DB, err = gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {

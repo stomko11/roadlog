@@ -139,6 +139,69 @@ func ImportCSV(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"imported": imported, "errors": errors})
 }
 
+func ImportExpenses(c *gin.Context) {
+	var input ImportMapping
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if input.ClearFirst {
+		db.DB.Where("vehicle_id = ?", input.VehicleID).Delete(&models.Expense{})
+	}
+
+	dateFormat := input.DateFormat
+	if dateFormat == "" {
+		dateFormat = "2006-01-02"
+	}
+
+	imported := 0
+	var errors []string
+
+	for i, row := range input.Data {
+		e := models.Expense{VehicleID: input.VehicleID}
+
+		if idx, ok := input.Mapping["date"]; ok && idx < len(row) {
+			t, err := parseDate(row[idx], dateFormat)
+			if err != nil {
+				errors = append(errors, "row "+strconv.Itoa(i+1)+": invalid date '"+row[idx]+"'")
+				continue
+			}
+			e.Date = t
+		} else {
+			continue
+		}
+
+		if idx, ok := input.Mapping["amount"]; ok && idx < len(row) {
+			e.Amount = parseFloat(row[idx])
+			if e.Amount == 0 {
+				continue
+			}
+		} else {
+			continue
+		}
+
+		if idx, ok := input.Mapping["category"]; ok && idx < len(row) {
+			e.Category = strings.TrimSpace(row[idx])
+		}
+		if idx, ok := input.Mapping["notes"]; ok && idx < len(row) {
+			e.Notes = strings.TrimSpace(row[idx])
+		}
+
+		if !input.ClearFirst {
+			var existing models.Expense
+			if db.DB.Where("vehicle_id = ? AND date = ? AND amount = ?", e.VehicleID, e.Date, e.Amount).First(&existing).Error == nil {
+				continue
+			}
+		}
+
+		db.DB.Create(&e)
+		imported++
+	}
+
+	c.JSON(http.StatusOK, gin.H{"imported": imported, "errors": errors})
+}
+
 func parseFloat(s string) float64 {
 	s = strings.TrimSpace(s)
 	s = strings.NewReplacer("Lt", "", "lt", "", "L", "", "l", "", "kWh", "", "kwh", "", "kg", "", "Kg", "", "km", "", "Km", "", "KM", "", "mi", "", "€", "", "$", "", "£", "").Replace(s)

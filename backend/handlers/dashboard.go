@@ -114,7 +114,19 @@ func GetDashboard(c *gin.Context) {
 				vMonthly[key] = &MonthSummary{Month: key}
 			}
 			vMonthly[key].TotalSpent += f.TotalCost
+			vMonthly[key].FuelSpent += f.TotalCost
 			vMonthly[key].Fillups++
+		}
+		for _, e := range expenses {
+			if e.VehicleID != v.ID {
+				continue
+			}
+			key := e.Date.Format("2006-01")
+			if _, ok := vMonthly[key]; !ok {
+				vMonthly[key] = &MonthSummary{Month: key}
+			}
+			vMonthly[key].TotalSpent += e.Amount
+			vMonthly[key].ExpenseSpent += e.Amount
 		}
 		for _, m := range vMonthly {
 			vm.Monthly = append(vm.Monthly, *m)

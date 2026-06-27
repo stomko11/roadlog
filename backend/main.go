@@ -70,6 +70,7 @@ func main() {
 
 		auth.POST("/import/parse", handlers.ParseCSVHeaders)
 		auth.POST("/import", handlers.ImportCSV)
+		auth.POST("/import/expenses", handlers.ImportExpenses)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
