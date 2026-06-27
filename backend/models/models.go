@@ -11,16 +11,18 @@ type User struct {
 }
 
 type Vehicle struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Name      string    `json:"name"`
-	Make      string    `json:"make"`
-	Model     string    `json:"model"`
-	Year      int       `json:"year"`
-	Plate     string    `json:"plate"`
-	FuelType  string    `json:"fuelType"`
-	Color     string    `json:"color"`
-	UserID    uint      `json:"userId"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name"`
+	Make        string    `json:"make"`
+	Model       string    `json:"model"`
+	Year        int       `json:"year"`
+	Plate       string    `json:"plate"`
+	FuelType    string    `json:"fuelType"`
+	Color       string    `json:"color"`
+	Active      *bool     `json:"active" gorm:"default:true"`
+	ShowInStats *bool     `json:"showInStats" gorm:"default:true"`
+	UserID      uint      `json:"userId"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type Fillup struct {

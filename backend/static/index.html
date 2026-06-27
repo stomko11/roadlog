@@ -157,7 +157,7 @@ async function loadVehicleComparison(range){
   if(!el)return;
   const results=[];
   const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
-  for(const v of state.vehicles){
+  for(const v of state.vehicles.filter(v=>v.showInStats!==false)){
     const qp=range?`?from=${range.from}&to=${range.to}`:'';
     const st=await api(`/vehicles/${v.id}/stats${qp}`);
     results.push({name:v.name,spent:st.totalSpent,fillups:st.totalFillups,color:v.color});
@@ -262,7 +262,7 @@ async function render(pushState=true){
 
   } else if(state.page==='vehicles'){
     try{state.vehicles=await api('/vehicles')}catch(e){return}
-    app.innerHTML=`${navBar('vehicles')}<div class="header"><h1>Vehicles</h1><button class="btn btn-primary" onclick="showAddVehicle()">+ Vehicle</button></div><div id="vform"></div><div id="vlist">${state.vehicles.length?state.vehicles.map(v=>`<div class="card" onclick="openVehicle(${v.id})"><div style="display:flex;align-items:center;gap:.5rem"><span style="width:12px;height:12px;border-radius:50%;background:${v.color||'#3b82f6'};flex-shrink:0"></span><div><strong>${v.name}</strong><div style="color:var(--muted);font-size:.85rem">${v.year||''} ${v.make||''} ${v.model||''} · ${v.plate||''} · ${v.fuelType||'—'}</div></div></div></div>`).join(''):'<p class="empty">No vehicles yet. Add one to get started.</p>'}</div>`;
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><h1>Vehicles</h1><button class="btn btn-primary" onclick="showAddVehicle()">+ Vehicle</button></div><div id="vform"></div><div id="vlist">${state.vehicles.length?state.vehicles.map(v=>`<div class="card" onclick="openVehicle(${v.id})" style="${v.active===false?'opacity:.5':''}"><div style="display:flex;align-items:center;gap:.5rem"><span style="width:12px;height:12px;border-radius:50%;background:${v.color||'#3b82f6'};flex-shrink:0"></span><div><strong>${v.name}</strong>${v.active===false?' <span style="font-size:.7rem;background:var(--border);padding:.1rem .4rem;border-radius:.25rem;color:var(--muted)">Inactive</span>':''}<div style="color:var(--muted);font-size:.85rem">${v.year||''} ${v.make||''} ${v.model||''} · ${v.plate||''} · ${v.fuelType||'—'}</div></div></div></div>`).join(''):'<p class="empty">No vehicles yet. Add one to get started.</p>'}</div>`;
 
   } else if(state.page==='detail'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
@@ -390,6 +390,10 @@ async function render(pushState=true){
     <div class="form-group"><label>Plate</label><input id="ev_plate" value="${v.plate||''}"></div>
     <div class="form-group"><label>Fuel Type</label><select id="ev_fuel">${['Petrol','Diesel','LPG','CNG','Electric','Hybrid','Plugin Hybrid'].map(f=>`<option ${f===v.fuelType?'selected':''}>${f}</option>`).join('')}</select></div>
     <div class="form-group"><label>Color</label><div style="display:flex;gap:.5rem;flex-wrap:wrap" id="ev_color_pick">${['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'].map(c=>`<div onclick="pickColor(this,'ev_color')" data-c="${c}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===(v.color||'#3b82f6')?'white':'transparent'}"></div>`).join('')}</div><input type="hidden" id="ev_color" value="${v.color||'#3b82f6'}"></div>
+    <div style="margin:1.25rem 0;border-top:1px solid var(--border);padding-top:1rem">
+    <div class="setting-row"><div><span>Active</span><div style="font-size:.75rem;color:var(--muted)">Inactive vehicles won't appear when adding fill-ups or expenses</div></div><button type="button" class="toggle ${v.active!==false?'on':''}" id="ev_active" onclick="this.classList.toggle('on')"></button></div>
+    <div class="setting-row"><div><span>Show in stats</span><div style="font-size:.75rem;color:var(--muted)">Include this vehicle's data in combined statistics</div></div><button type="button" class="toggle ${v.showInStats!==false?'on':''}" id="ev_stats" onclick="this.classList.toggle('on')"></button></div>
+    </div>
     <button class="btn btn-primary btn-block" type="submit">Save Changes</button>
     <button type="button" class="btn btn-block" style="background:#ef4444;margin-top:.5rem" onclick="deleteVehicle(${v.id})">Delete Vehicle</button>
     </form>`;
@@ -615,20 +619,20 @@ async function bulkDeleteExpenses(){
 }
 async function submitEditVehicle(e){
   e.preventDefault();
-  await api(`/vehicles/${state.vehicleId}`,{method:'PUT',body:JSON.stringify({name:document.getElementById('ev_name').value,make:document.getElementById('ev_make').value,model:document.getElementById('ev_model').value,year:+document.getElementById('ev_year').value,plate:document.getElementById('ev_plate').value,fuelType:document.getElementById('ev_fuel').value,color:document.getElementById('ev_color').value})});
+  await api(`/vehicles/${state.vehicleId}`,{method:'PUT',body:JSON.stringify({name:document.getElementById('ev_name').value,make:document.getElementById('ev_make').value,model:document.getElementById('ev_model').value,year:+document.getElementById('ev_year').value,plate:document.getElementById('ev_plate').value,fuelType:document.getElementById('ev_fuel').value,color:document.getElementById('ev_color').value,active:document.getElementById('ev_active').classList.contains('on'),showInStats:document.getElementById('ev_stats').classList.contains('on')})});
   openVehicle(state.vehicleId);
 }
 async function deleteVehicle(id){
   if(confirm('Delete this vehicle and all its fill-ups? This cannot be undone.')){await api(`/vehicles/${id}`,{method:'DELETE'});state.page='vehicles';render()}
 }
 async function quickAddExpense(){
-  const vehicles=await api('/vehicles');
+  const vehicles=await api('/vehicles?active=true');
   if(!vehicles||vehicles.length===0){alert('Add a vehicle first');state.page='vehicles';render();return}
   if(vehicles.length===1){state.vehicleId=vehicles[0].id;state.page='fillup';render();return}
   state.pickTarget='fillup';state.page='pickVehicle';state.vehicles=vehicles;render();
 }
 async function quickAddOtherExpense(){
-  const vehicles=await api('/vehicles');
+  const vehicles=await api('/vehicles?active=true');
   if(!vehicles||vehicles.length===0){alert('Add a vehicle first');state.page='vehicles';render();return}
   if(vehicles.length===1){state.vehicleId=vehicles[0].id;state.page='addExpense';render();return}
   state.pickTarget='addExpense';state.page='pickVehicle';state.vehicles=vehicles;render();

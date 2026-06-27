@@ -10,7 +10,11 @@ import (
 
 func GetVehicles(c *gin.Context) {
 	var vehicles []models.Vehicle
-	db.DB.Order("created_at desc").Find(&vehicles)
+	q := db.DB.Order("created_at desc")
+	if c.Query("active") == "true" {
+		q = q.Where("active = ?", true)
+	}
+	q.Find(&vehicles)
 	c.JSON(http.StatusOK, vehicles)
 }
 
@@ -49,7 +53,17 @@ func UpdateVehicle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	db.DB.Model(&v).Updates(models.Vehicle{Name: input.Name, Make: input.Make, Model: input.Model, Year: input.Year, Plate: input.Plate, FuelType: input.FuelType, Color: input.Color})
+	updates := map[string]interface{}{
+		"name": input.Name, "make": input.Make, "model": input.Model,
+		"year": input.Year, "plate": input.Plate, "fuel_type": input.FuelType, "color": input.Color,
+	}
+	if input.Active != nil {
+		updates["active"] = *input.Active
+	}
+	if input.ShowInStats != nil {
+		updates["show_in_stats"] = *input.ShowInStats
+	}
+	db.DB.Model(&v).Updates(updates)
 	db.DB.First(&v, v.ID)
 	c.JSON(http.StatusOK, v)
 }

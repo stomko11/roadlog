@@ -40,11 +40,19 @@ func GetDashboard(c *gin.Context) {
 	db.DB.Find(&vehicles)
 	d.TotalVehicles = len(vehicles)
 
+	// Build set of vehicle IDs to include in stats
+	statsVehicleIDs := []uint{}
+	for _, v := range vehicles {
+		if v.ShowInStats == nil || *v.ShowInStats {
+			statsVehicleIDs = append(statsVehicleIDs, v.ID)
+		}
+	}
+
 	from := c.Query("from")
 	to := c.Query("to")
 
 	var fillups []models.Fillup
-	q := db.DB.Order("date desc")
+	q := db.DB.Where("vehicle_id IN ?", statsVehicleIDs).Order("date desc")
 	if from != "" && to != "" {
 		q = q.Where("date >= ? AND date <= ?", from+"T00:00:00Z", to+"T23:59:59Z")
 	} else if from != "" {
@@ -69,7 +77,7 @@ func GetDashboard(c *gin.Context) {
 
 	// Add expenses
 	var expenses []models.Expense
-	qe := db.DB.Order("date desc")
+	qe := db.DB.Where("vehicle_id IN ?", statsVehicleIDs).Order("date desc")
 	if from != "" && to != "" {
 		qe = qe.Where("date >= ? AND date <= ?", from+"T00:00:00Z", to+"T23:59:59Z")
 	} else if from != "" {
@@ -103,6 +111,9 @@ func GetDashboard(c *gin.Context) {
 
 	// Per-vehicle breakdown
 	for _, v := range vehicles {
+		if v.ShowInStats != nil && !*v.ShowInStats {
+			continue
+		}
 		vm := VehicleMonthly{VehicleID: v.ID, VehicleName: v.Name, Color: v.Color}
 		vMonthly := map[string]*MonthSummary{}
 		for _, f := range fillups {
