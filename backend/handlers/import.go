@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/csv"
 	"net/http"
+	"regexp"
 	"roadlog/db"
 	"roadlog/models"
 	"strconv"
@@ -202,12 +203,13 @@ func ImportExpenses(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"imported": imported, "errors": errors})
 }
 
+var unitRe = regexp.MustCompile(`(?i)\s*(kwh|kwh|lt|ltr|litre|liter|gal|gallon|kg|km|mi|mph|l|€|\$|£|czk|pln|sek|nok|dkk|huf|chf)\s*`)
+
 func parseFloat(s string) float64 {
 	s = strings.TrimSpace(s)
-	s = strings.NewReplacer("Lt", "", "lt", "", "L", "", "l", "", "kWh", "", "kwh", "", "kg", "", "Kg", "", "km", "", "Km", "", "KM", "", "mi", "", "€", "", "$", "", "£", "").Replace(s)
+	s = unitRe.ReplaceAllString(s, "")
 	s = strings.TrimSpace(s)
 	s = strings.ReplaceAll(s, ",", ".")
-	// Remove thousands separators (space or non-breaking space)
 	s = strings.ReplaceAll(s, " ", "")
 	s = strings.ReplaceAll(s, "\u00a0", "")
 	v, _ := strconv.ParseFloat(s, 64)

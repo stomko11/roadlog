@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="/favicon.png">
 <title>Roadlog</title>
 <style>
 :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--accent:#3b82f6;--accent-hover:#2563eb}
@@ -282,8 +283,8 @@ async function render(pushState=true){
     <div class="stats"><div class="stat-card"><div class="value">${s.totalFillups}</div><div class="label">Fill-ups</div></div><div class="stat-card"><div class="value">${curr}${(s.totalSpent+expTotal).toFixed(0)}</div><div class="label">Total Spent</div></div><div class="stat-card"><div class="value">${s.avgConsumption.toFixed(1)}</div><div class="label">${u.consumption}</div></div><div class="stat-card"><div class="value">${s.totalDistance.toFixed(0)}</div><div class="label">km driven</div></div></div>
     ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
     ${chartData.length>1?`<div class="chart-section"><h3>Price Trend (${curr}/${u.unit})</h3><div class="vbar-chart">${chartData.map(p=>`<div class="vbar bar-tip" style="height:${(p.pricePerUnit/maxPrice*100).toFixed(0)}%;background:#f59e0b" data-tip="${p.date.slice(5)}: ${curr}${p.pricePerUnit.toFixed(3)}"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)"><span>${chartData[0].date.slice(5)}</span><span>${chartData[chartData.length-1].date.slice(5)}</span></div></div>`:''}
-    <div style="display:flex;justify-content:space-between;align-items:center"><h2>Fill-up History</h2>${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${state.fillups.length?state.fillups.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} km · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join(''):'<p class="empty">No fill-ups yet.</p>'}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${expenses.length?expenses.map(e=>`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`).join(''):'<p class="empty">No expenses yet.</p>'}`;
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2>Fill-up History</h2>${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${(()=>{const pg=state.fPage||1,ps=10,total=state.fillups.length,pages=Math.ceil(total/ps),items=state.fillups.slice((pg-1)*ps,pg*ps);return items.length?items.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} km · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'fPage'):''):'<p class="empty">No fill-ups yet.</p>'})()}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}`;
 
   } else if(state.page==='fillup'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
@@ -429,7 +430,7 @@ async function render(pushState=true){
       <h2 style="margin-bottom:.5rem">Backup & Restore</h2>
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Download a full backup or restore from a previous export</p>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-        <a class="btn btn-primary btn-sm" href="/api/backup" onclick="this.href='/api/backup';this.setAttribute('download','');addAuthToLink(this)">⬇ Download Backup</a>
+        <a class="btn btn-primary btn-sm" href="#" onclick="downloadBackup(event)">⬇ Download Backup</a>
         <button class="btn btn-sm" style="background:var(--border)" onclick="document.getElementById('restoreFile').click()">⬆ Restore from File</button>
         <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(this)">
       </div>
@@ -578,6 +579,18 @@ async function submitEditFillup(e){
 async function deleteFillup(id){
   if(confirm('Delete this fill-up?')){await api(`/fillups/${id}`,{method:'DELETE'});openVehicle(state.vehicleId)}
 }
+function paginator(pg,pages,key){
+  const btn=(n,label,active)=>`<button class="btn btn-sm" style="background:${active?'var(--accent)':'var(--border)'};min-width:32px" onclick="state.${key}=${n};render()">${label||n}</button>`;
+  let btns=[];
+  btns.push(btn(Math.max(1,pg-1),'←'));
+  btns.push(btn(1,1,pg===1));
+  if(pg>3)btns.push('<span style="padding:0 .3rem;color:var(--muted)">…</span>');
+  for(let i=Math.max(2,pg-1);i<=Math.min(pages-1,pg+1);i++)btns.push(btn(i,i,pg===i));
+  if(pg<pages-2)btns.push('<span style="padding:0 .3rem;color:var(--muted)">…</span>');
+  if(pages>1)btns.push(btn(pages,pages,pg===pages));
+  btns.push(btn(Math.min(pages,pg+1),'→'));
+  return '<div style="display:flex;justify-content:center;align-items:center;gap:.25rem;margin-top:.75rem">'+btns.join('')+'</div>';
+}
 function toggleBulkSelect(type){
   state.bulkMode=state.bulkMode===type?null:type;
   const cls=type==='fillups'?'bulk-f':'bulk-e';
@@ -665,15 +678,13 @@ async function changeUserPw(id,name){
 async function deleteUser(id,name){
   if(confirm(`Delete user "${name}"? This cannot be undone.`))await api(`/users/${id}`,{method:'DELETE'});render();
 }
-function addAuthToLink(el){
-  // For backup download, we need to use fetch with auth
-  el.onclick=async function(e){
-    e.preventDefault();
-    const r=await fetch('/api/backup',{headers:{'Authorization':'Bearer '+token}});
-    const blob=await r.blob();
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='roadlog-backup.json';a.click();URL.revokeObjectURL(url);
-  };
+async function downloadBackup(e){
+  e.preventDefault();
+  const r=await fetch('/api/backup',{headers:{'Authorization':'Bearer '+token}});
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  const ts=new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
+  const a=document.createElement('a');a.href=url;a.download=`roadlog-backup-${ts}.json`;a.click();URL.revokeObjectURL(url);
 }
 async function exportCSV(vehicleId){
   const r=await fetch(`/api/vehicles/${vehicleId}/export`,{headers:{'Authorization':'Bearer '+token}});

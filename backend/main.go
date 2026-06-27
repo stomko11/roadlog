@@ -14,6 +14,9 @@ import (
 //go:embed static/index.html
 var staticFS embed.FS
 
+//go:embed static/favicon.png
+var faviconData []byte
+
 func main() {
 	if os.Getenv("DATA_DIR") == "" {
 		os.Setenv("DATA_DIR", ".")
@@ -76,6 +79,10 @@ func main() {
 		auth.POST("/import", handlers.ImportCSV)
 		auth.POST("/import/expenses", handlers.ImportExpenses)
 	}
+
+	r.GET("/favicon.png", func(c *gin.Context) {
+		c.Data(http.StatusOK, "image/png", faviconData)
+	})
 
 	r.NoRoute(func(c *gin.Context) {
 		data, _ := staticFS.ReadFile("static/index.html")
