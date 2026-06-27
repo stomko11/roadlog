@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <CommunityApplications>
   <Profile>
     Roadlog is a self-hosted vehicle fuel and expense tracker. Track fill-ups, maintenance costs, and fuel consumption across multiple vehicles. Single-container deployment with Go backend and embedded frontend.
