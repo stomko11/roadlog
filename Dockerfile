@@ -12,6 +12,7 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=builder /app/roadlog .
 RUN mkdir -p /data
+VOLUME /data
 EXPOSE 3000
 ENV DATA_DIR=/data
 CMD ["./roadlog"]
