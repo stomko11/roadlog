@@ -1,5 +1,7 @@
-<Profile>
-  <Name>stomko11</Name>
-  <Overview>Self-hosted tools for vehicle tracking and management.</Overview>
-  <GitHub>https://github.com/stomko11</GitHub>
-</Profile>
+<CommunityApplications>
+  <Profile>
+    Roadlog is a self-hosted vehicle fuel and expense tracker. Track fill-ups, maintenance costs, and fuel consumption across multiple vehicles. Single-container deployment with Go backend and embedded frontend.
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/stomko11/roadlog/main/icon.png</Icon>
+  <WebPage>https://github.com/stomko11/roadlog</WebPage>
+</CommunityApplications>
