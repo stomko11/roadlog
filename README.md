@@ -8,19 +8,43 @@ A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expens
 
 ## Features
 
-- **Multi-vehicle support** — petrol, diesel, LPG, CNG, electric, hybrid
+- **Multi-vehicle support** — petrol, diesel, LPG, CNG, electric, hybrid, plugin hybrid
+- **Plugin Hybrid** — choose fuel or electric per fill-up
+- **EVCC integration** — auto-import home charging sessions with solar %, actual cost from dynamic tariffs, and savings vs grid
+- **Vehicle lifecycle** — mark vehicles as inactive (won't appear in new entries) or hide from stats
 - **Smart fill-up form** — pre-fills last odometer, price, station (configurable)
 - **Saved stations** — per fuel type, with autocomplete suggestions
 - **Other expenses** — insurance, service, repair, tires, parking, tolls, etc.
-- **Dashboard** — monthly spending charts (per vehicle, color-coded), period filters
+- **Dashboard** — monthly spending charts (per vehicle, color-coded), period filters, total distance driven
 - **Per-vehicle charts** — consumption trends, price trends
 - **Multi-user** — shared vehicles, user management
 - **CSV import** — with smart column mapping and auto-guess
 - **CSV export & full backup/restore**
 - **Dark/light theme**
-- **Configurable currency** — EUR, USD, GBP, CZK, PLN, CHF, SEK, NOK, DKK, HUF
-- **Dynamic units** — L, kWh, kg based on fuel type
+- **Configurable units** — currency (EUR, USD, GBP, CZK, PLN…), volume (L, gal), distance (km, mi)
 - **Single container** — Go backend + embedded frontend, SQLite database
+
+## EVCC Integration
+
+Automatically import EV charging sessions from [EVCC](https://evcc.io) with full solar/cost data.
+
+**Setup:**
+1. Go to your EV's edit page → EVCC Integration section
+2. Enter your EVCC instance URL (e.g. `http://192.168.x.x:7070`)
+3. Click "Connect & Discover" — select vehicle and loadpoint
+4. Set a label (e.g. "Home"), sync-since date, and optionally enable daily auto-sync
+5. Set a fallback price for sessions without tariff data (estimates cost using solar %)
+
+**What gets imported:**
+- Charged energy (kWh)
+- Actual cost (from dynamic tariffs, accounting for solar share)
+- Solar percentage per session
+- Odometer reading
+- Savings vs full grid price
+
+**Deduplication:** Sessions are tagged with their EVCC session ID — re-syncing never creates duplicates.
+
+**Multiple sources:** You can add multiple EVCC instances per vehicle (e.g. home + parents' house).
 
 ## Quick Start
 

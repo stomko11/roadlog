@@ -22,6 +22,7 @@ func main() {
 		os.Setenv("DATA_DIR", ".")
 	}
 	db.Init()
+	handlers.RunEVCCScheduler()
 
 	r := gin.Default()
 	r.Use(cors.Default())
@@ -78,6 +79,13 @@ func main() {
 		auth.POST("/import/parse", handlers.ParseCSVHeaders)
 		auth.POST("/import", handlers.ImportCSV)
 		auth.POST("/import/expenses", handlers.ImportExpenses)
+
+		auth.GET("/evcc/discover", handlers.EVCCDiscover)
+		auth.GET("/vehicles/:id/evcc", handlers.GetVehicleEVCCSources)
+		auth.POST("/vehicles/:id/evcc", handlers.CreateVehicleEVCCSource)
+		auth.DELETE("/evcc/:id", handlers.DeleteVehicleEVCCSource)
+		auth.PUT("/evcc/:id", handlers.UpdateVehicleEVCCSource)
+		auth.POST("/vehicles/:id/evcc/sync", handlers.SyncVehicleEVCC)
 	}
 
 	r.GET("/favicon.png", func(c *gin.Context) {

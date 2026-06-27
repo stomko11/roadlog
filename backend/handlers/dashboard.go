@@ -30,6 +30,7 @@ type DashboardResponse struct {
 	TotalSpent     float64          `json:"totalSpent"`
 	FuelSpent      float64          `json:"fuelSpent"`
 	ExpenseSpent   float64          `json:"expenseSpent"`
+	TotalDistance  float64          `json:"totalDistance"`
 	Monthly        []MonthSummary   `json:"monthly"`
 	PerVehicle     []VehicleMonthly `json:"perVehicle"`
 }
@@ -38,7 +39,6 @@ func GetDashboard(c *gin.Context) {
 	var d DashboardResponse
 	var vehicles []models.Vehicle
 	db.DB.Find(&vehicles)
-	d.TotalVehicles = len(vehicles)
 
 	// Build set of vehicle IDs to include in stats
 	statsVehicleIDs := []uint{}
@@ -47,6 +47,7 @@ func GetDashboard(c *gin.Context) {
 			statsVehicleIDs = append(statsVehicleIDs, v.ID)
 		}
 	}
+	d.TotalVehicles = len(statsVehicleIDs)
 
 	from := c.Query("from")
 	to := c.Query("to")
@@ -62,6 +63,8 @@ func GetDashboard(c *gin.Context) {
 	d.TotalFillups = int64(len(fillups))
 
 	monthly := map[string]*MonthSummary{}
+	vOdoMin := map[uint]float64{}
+	vOdoMax := map[uint]float64{}
 	for _, f := range fillups {
 		d.TotalSpent += f.TotalCost
 		d.FuelSpent += f.TotalCost
@@ -73,6 +76,17 @@ func GetDashboard(c *gin.Context) {
 		monthly[key].FuelSpent += f.TotalCost
 		monthly[key].Fillups++
 		monthly[key].Liters += f.FuelAmount
+		if f.Odometer > 0 {
+			if _, ok := vOdoMin[f.VehicleID]; !ok || f.Odometer < vOdoMin[f.VehicleID] {
+				vOdoMin[f.VehicleID] = f.Odometer
+			}
+			if f.Odometer > vOdoMax[f.VehicleID] {
+				vOdoMax[f.VehicleID] = f.Odometer
+			}
+		}
+	}
+	for vid, max := range vOdoMax {
+		d.TotalDistance += max - vOdoMin[vid]
 	}
 
 	// Add expenses

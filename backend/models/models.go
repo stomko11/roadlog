@@ -69,6 +69,21 @@ type FillupPrefill struct {
 	FullTank     *bool    `json:"fullTank"`
 }
 
+type VehicleEVCC struct {
+	ID                  uint      `json:"id" gorm:"primaryKey"`
+	VehicleID           uint      `json:"vehicleId"`
+	URL                 string    `json:"url"`
+	EVCCVehicle         string    `json:"evccVehicle"`
+	EVCCLoadpoint       string    `json:"evccLoadpoint"`
+	Label               string    `json:"label"`
+	SyncSince           string    `json:"syncSince"`
+	LastSyncedSessionID int       `json:"lastSyncedSessionId"`
+	AutoSync            bool      `json:"autoSync"`
+	SyncTime            string    `json:"syncTime"`
+	FallbackPrice       float64   `json:"fallbackPrice"`
+	CreatedAt           time.Time `json:"createdAt"`
+}
+
 type VehicleStats struct {
 	TotalFillups   int64   `json:"totalFillups"`
 	TotalSpent     float64 `json:"totalSpent"`
