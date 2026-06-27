@@ -814,7 +814,7 @@ async function doRestore(input){
   const text=await file.text();
   try{
     const res=await api('/restore',{method:'POST',body:text});
-    alert(`Restored: ${res.users} users, ${res.vehicles} vehicles, ${res.fillups} fill-ups`);
+    alert(`Restored: ${res.vehicles} vehicles, ${res.fillups} fill-ups, ${res.expenses||0} expenses`);
     render();
   }catch(err){alert('Restore failed: '+err.message)}
 }

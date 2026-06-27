@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"roadlog/db"
 	"roadlog/models"
 	"strings"
@@ -41,22 +40,12 @@ func Restore(c *gin.Context) {
 		return
 	}
 
-	// Get DB path and close
-	path := "/data/roadlog.db"
-	if p := os.Getenv("DATA_DIR"); p != "" && p != "/" {
-		path = p + "/roadlog.db"
-	}
-
-	// Clear and reimport
+	// Clear and reimport data (keep users intact)
 	db.DB.Exec("DELETE FROM fillups")
 	db.DB.Exec("DELETE FROM expenses")
 	db.DB.Exec("DELETE FROM vehicles")
 	db.DB.Exec("DELETE FROM user_preferences")
-	db.DB.Exec("DELETE FROM users")
 
-	for _, u := range data.Users {
-		db.DB.Create(&u)
-	}
 	for _, v := range data.Vehicles {
 		db.DB.Create(&v)
 	}
@@ -70,8 +59,7 @@ func Restore(c *gin.Context) {
 		db.DB.Create(&s)
 	}
 
-	_ = path // used for potential file-level backup in future
-	c.JSON(http.StatusOK, gin.H{"restored": true, "users": len(data.Users), "vehicles": len(data.Vehicles), "fillups": len(data.Fillups), "expenses": len(data.Expenses)})
+	c.JSON(http.StatusOK, gin.H{"restored": true, "vehicles": len(data.Vehicles), "fillups": len(data.Fillups), "expenses": len(data.Expenses)})
 }
 
 func ExportVehicleCSV(c *gin.Context) {
