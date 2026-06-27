@@ -24,6 +24,17 @@ A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expens
 
 ## Quick Start
 
+### Unraid
+
+1. In Unraid, go to **Docker → Template Repositories**
+2. Add: `https://github.com/stomko11/roadlog`
+3. Click **Add Container**, select the **Roadlog** template
+4. Click **Apply** — done!
+
+Data is stored in `/mnt/user/appdata/roadlog` by default.
+
+### Docker Compose
+
 ```yaml
 services:
   roadlog:

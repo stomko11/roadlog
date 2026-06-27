@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#1e293b"/>
+  <circle cx="256" cy="240" r="140" stroke="#3b82f6" stroke-width="28" stroke-linecap="round" stroke-dasharray="440 220"/>
+  <line x1="256" y1="240" x2="310" y2="180" stroke="#f59e0b" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="256" cy="240" r="16" fill="#f59e0b"/>
+  <rect x="140" y="400" width="232" height="48" rx="24" fill="#3b82f6"/>
+  <text x="256" y="433" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-weight="700" font-size="30" fill="white">ROADLOG</text>
+</svg>
