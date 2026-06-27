@@ -15,4 +15,6 @@ RUN mkdir -p /data
 VOLUME /data
 EXPOSE 3000
 ENV DATA_DIR=/data
+LABEL net.unraid.docker.icon="https://raw.githubusercontent.com/stomko11/roadlog/main/icon.png"
+LABEL net.unraid.docker.webui="http://[IP]:[PORT:3000]/"
 CMD ["./roadlog"]
