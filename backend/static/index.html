@@ -81,6 +81,12 @@ input[type="date"]{cursor:pointer}
 .vbar-labels span{flex:1;min-width:20px;text-align:center;font-size:.65rem;color:var(--muted)}
 .bar-tip{position:relative;cursor:default}
 .bar-tip:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:.3rem;padding:.25rem .5rem;font-size:.7rem;white-space:nowrap;z-index:10;pointer-events:none}
+.fab-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:100;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:.5rem}
+.fab{width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:transform .2s}
+.fab-container.open .fab{transform:rotate(45deg)}
+.fab-menu{display:none;flex-direction:column;gap:.5rem;margin-bottom:.5rem}
+.fab-container.open .fab-menu{display:flex}
+.fab-item{padding:.5rem 1rem;border-radius:2rem;border:none;color:#fff;font-size:.85rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -116,6 +122,7 @@ function toggleTheme(){
 function fuelUnit(fuelType){
   if(fuelType==='Electric')return{unit:'kWh',pricePlaceholder:'0.25',fullLabel:'Full charge',consumption:'kWh/100km',amountLabel:'kWh charged'};
   if(fuelType==='CNG')return{unit:'kg',pricePlaceholder:'1.20',fullLabel:'Full tank',consumption:'kg/100km',amountLabel:'kg filled'};
+  if(fuelType==='Plugin Hybrid')return{unit:'L/kWh',pricePlaceholder:'1.459',fullLabel:'Full tank',consumption:'L/100km',amountLabel:'Liters or kWh'};
   return{unit:'L',pricePlaceholder:'1.459',fullLabel:'Full tank',consumption:'L/100km',amountLabel:'Liters filled'};
 }
 
@@ -248,7 +255,8 @@ async function render(pushState=true){
       return '<div style="font-size:.75rem;margin-bottom:.5rem">'+legend+'</div><div style="display:flex;align-items:flex-end;gap:4px;padding:0 .25rem">'+bars+'</div><div class="vbar-labels">'+labels+'</div><div style="text-align:right;font-size:.8rem;color:var(--muted);margin-top:.5rem">Period total: '+curr+d.totalSpent.toFixed(2)+'</div>';
     })():'<p class="empty">No data for this period.</p>'}
     </div>
-    <div id="vehicle-comparison"></div>`;
+    <div id="vehicle-comparison"></div>
+    <div class="fab-container" id="fab"><button class="fab" onclick="document.getElementById('fab').classList.toggle('open')">+</button><div class="fab-menu"><button class="fab-item" style="background:var(--accent)" onclick="quickAddExpense()">⛽ Fill-up</button><button class="fab-item" style="background:#10b981" onclick="quickAddOtherExpense()">🧾 Expense</button></div></div>`;
     if(state.vehicles.length>1)loadVehicleComparison(range);
 
   } else if(state.page==='vehicles'){
@@ -268,13 +276,14 @@ async function render(pushState=true){
     const maxPrice=Math.max(...chartData.map(p=>p.pricePerUnit),1);
     let expenses=[];try{expenses=await api(`/vehicles/${state.vehicleId}/expenses`)}catch(e){}
     const expTotal=expenses.reduce((s,e)=>s+e.amount,0);
-    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><div><button class="btn btn-sm" style="background:var(--border);margin-right:.5rem" onclick="editVehicle(${state.vehicleId})">✏️</button><button class="btn btn-sm" style="background:var(--border);margin-right:.5rem" onclick="startImportSelect(${state.vehicleId})">⬆ Import</button><button class="btn btn-sm" style="background:var(--border);margin-right:.5rem" onclick="exportCSV(${state.vehicleId})">⬇ CSV</button><button class="btn btn-primary btn-sm" style="margin-right:.5rem" onclick="goFillup()">+ Fill-up</button><button class="btn btn-sm" style="background:#10b981" onclick="goExpense()">+ Expense</button></div></div>
+    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><button class="btn btn-sm" style="background:var(--border)" onclick="editVehicle(${state.vehicleId})">✏️</button></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"><button class="btn btn-primary btn-sm" onclick="goFillup()">+ Fill-up</button><button class="btn btn-sm" style="background:#10b981" onclick="goExpense()">+ Expense</button><button class="btn btn-sm" style="background:var(--border)" onclick="startImportSelect(${state.vehicleId})">⬆ Import</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportCSV(${state.vehicleId})">⬇ Fuel CSV</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportExpenseCSV(${state.vehicleId})">⬇ Expense CSV</button></div>
     <div class="header"><h2 style="margin:0">${vehicle.name}</h2><select class="period-select" onchange="state.vPeriod=this.value;render()"><option value="month" ${state.vPeriod==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.vPeriod==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.vPeriod==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.vPeriod==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.vPeriod==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.vPeriod==='all'?'selected':''}>All Time</option></select></div>
     <div class="stats"><div class="stat-card"><div class="value">${s.totalFillups}</div><div class="label">Fill-ups</div></div><div class="stat-card"><div class="value">${curr}${(s.totalSpent+expTotal).toFixed(0)}</div><div class="label">Total Spent</div></div><div class="stat-card"><div class="value">${s.avgConsumption.toFixed(1)}</div><div class="label">${u.consumption}</div></div><div class="stat-card"><div class="value">${s.totalDistance.toFixed(0)}</div><div class="label">km driven</div></div></div>
     ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
     ${chartData.length>1?`<div class="chart-section"><h3>Price Trend (${curr}/${u.unit})</h3><div class="vbar-chart">${chartData.map(p=>`<div class="vbar bar-tip" style="height:${(p.pricePerUnit/maxPrice*100).toFixed(0)}%;background:#f59e0b" data-tip="${p.date.slice(5)}: ${curr}${p.pricePerUnit.toFixed(3)}"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)"><span>${chartData[0].date.slice(5)}</span><span>${chartData[chartData.length-1].date.slice(5)}</span></div></div>`:''}
-    <h2>Fill-up History</h2>${state.fillups.length?state.fillups.map(f=>`<div class="card" onclick="editFillup(${f.id})"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} km · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div>`).join(''):'<p class="empty">No fill-ups yet.</p>'}
-    <h2 style="margin-top:1rem">Expenses</h2>${expenses.length?expenses.map(e=>`<div class="card" onclick="editExpense(${e.id},${state.vehicleId})"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div>`).join(''):'<p class="empty">No expenses yet.</p>'}`;
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2>Fill-up History</h2>${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${state.fillups.length?state.fillups.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} km · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join(''):'<p class="empty">No fill-ups yet.</p>'}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${expenses.length?expenses.map(e=>`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`).join(''):'<p class="empty">No expenses yet.</p>'}`;
 
   } else if(state.page==='fillup'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
@@ -378,7 +387,7 @@ async function render(pushState=true){
     <div class="form-group"><label>Model</label><input id="ev_model" value="${v.model||''}"></div>
     <div class="form-group"><label>Year</label><input type="number" id="ev_year" value="${v.year||''}"></div>
     <div class="form-group"><label>Plate</label><input id="ev_plate" value="${v.plate||''}"></div>
-    <div class="form-group"><label>Fuel Type</label><select id="ev_fuel">${['Petrol','Diesel','LPG','CNG','Electric','Hybrid'].map(f=>`<option ${f===v.fuelType?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Fuel Type</label><select id="ev_fuel">${['Petrol','Diesel','LPG','CNG','Electric','Hybrid','Plugin Hybrid'].map(f=>`<option ${f===v.fuelType?'selected':''}>${f}</option>`).join('')}</select></div>
     <div class="form-group"><label>Color</label><div style="display:flex;gap:.5rem;flex-wrap:wrap" id="ev_color_pick">${['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'].map(c=>`<div onclick="pickColor(this,'ev_color')" data-c="${c}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${c===(v.color||'#3b82f6')?'white':'transparent'}"></div>`).join('')}</div><input type="hidden" id="ev_color" value="${v.color||'#3b82f6'}"></div>
     <button class="btn btn-primary btn-block" type="submit">Save Changes</button>
     <button type="button" class="btn btn-block" style="background:#ef4444;margin-top:.5rem" onclick="deleteVehicle(${v.id})">Delete Vehicle</button>
@@ -403,7 +412,7 @@ async function render(pushState=true){
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Manage your saved stations by fuel type</p>
       ${fuelTypes.length?fuelTypes.map(ft=>`<div style="margin-bottom:1rem"><strong style="font-size:.85rem;color:var(--accent)">${ft}</strong>${state.allStations.filter(st=>st.fuelType===ft).map(st=>`<div class="setting-row"><span id="sn-${st.id}">${st.name}</span><div><button class="btn btn-sm" style="background:var(--border);margin-right:.25rem" onclick="renameStation(${st.id})">✏️</button><button class="btn btn-sm" style="background:#ef4444" onclick="delStation(${st.id})">✕</button></div></div>`).join('')}</div>`).join(''):'<p style="color:var(--muted);font-size:.85rem">No saved stations yet. Add them when creating a fill-up.</p>'}
       <div style="display:flex;gap:.5rem;margin-top:.5rem">
-        <select id="new_st_fuel" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem"><option>Petrol</option><option>Diesel</option><option>LPG</option><option>CNG</option><option>Electric</option></select>
+        <select id="new_st_fuel" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem"><option>Petrol</option><option>Diesel</option><option>LPG</option><option>CNG</option><option>Electric</option><option>Plugin Hybrid</option></select>
         <input id="new_st_name" placeholder="Station name" style="flex:1;padding:.4rem .6rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)">
         <button class="btn btn-sm btn-primary" onclick="addStationFromSettings()">+</button>
       </div>
@@ -569,6 +578,28 @@ async function submitEditFillup(e){
 async function deleteFillup(id){
   if(confirm('Delete this fill-up?')){await api(`/fillups/${id}`,{method:'DELETE'});openVehicle(state.vehicleId)}
 }
+function toggleBulkSelect(type){
+  state.bulkMode=state.bulkMode===type?null:type;
+  const cls=type==='fillups'?'bulk-f':'bulk-e';
+  const bar=document.getElementById('bulk-'+type+'-bar');
+  document.querySelectorAll('.'+cls).forEach(cb=>{cb.style.display=state.bulkMode===type?'inline':'none';cb.checked=false});
+  if(bar)bar.style.display=state.bulkMode===type?'flex':'none';
+}
+function toggleCheck(id){const cb=document.getElementById(id);if(cb)cb.checked=!cb.checked}
+async function bulkDeleteFillups(){
+  const ids=[...document.querySelectorAll('.bulk-f:checked')].map(cb=>+cb.dataset.id);
+  if(!ids.length){alert('Select fill-ups to delete');return}
+  if(!confirm(`Delete ${ids.length} fill-up(s)?`))return;
+  await api('/fillups/bulk-delete',{method:'POST',body:JSON.stringify({ids})});
+  state.bulkMode=null;openVehicle(state.vehicleId);
+}
+async function bulkDeleteExpenses(){
+  const ids=[...document.querySelectorAll('.bulk-e:checked')].map(cb=>+cb.dataset.id);
+  if(!ids.length){alert('Select expenses to delete');return}
+  if(!confirm(`Delete ${ids.length} expense(s)?`))return;
+  await api('/expenses/bulk-delete',{method:'POST',body:JSON.stringify({ids})});
+  state.bulkMode=null;openVehicle(state.vehicleId);
+}
 async function submitEditVehicle(e){
   e.preventDefault();
   await api(`/vehicles/${state.vehicleId}`,{method:'PUT',body:JSON.stringify({name:document.getElementById('ev_name').value,make:document.getElementById('ev_make').value,model:document.getElementById('ev_model').value,year:+document.getElementById('ev_year').value,plate:document.getElementById('ev_plate').value,fuelType:document.getElementById('ev_fuel').value,color:document.getElementById('ev_color').value})});
@@ -597,7 +628,7 @@ function showAddVehicle(){
   <div class="form-group"><label>Model</label><input id="v_model" placeholder="e.g. Golf"></div>
   <div class="form-group"><label>Year</label><input type="number" id="v_year" value="${new Date().getFullYear()}"></div>
   <div class="form-group"><label>Plate</label><input id="v_plate"></div>
-  <div class="form-group"><label>Fuel Type</label><select id="v_fuel"><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="LPG">LPG</option><option value="CNG">CNG</option><option value="Electric">Electric</option><option value="Hybrid">Hybrid</option></select></div>
+  <div class="form-group"><label>Fuel Type</label><select id="v_fuel"><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="LPG">LPG</option><option value="CNG">CNG</option><option value="Electric">Electric</option><option value="Hybrid">Hybrid</option><option value="Plugin Hybrid">Plugin Hybrid</option></select></div>
   <div class="form-group"><label>Color</label><div style="display:flex;gap:.5rem;flex-wrap:wrap">${['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'].map((c,i)=>`<div onclick="pickColor(this,'v_color')" data-c="${c}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${i===0?'white':'transparent'}"></div>`).join('')}</div><input type="hidden" id="v_color" value="#3b82f6"></div>
   <button class="btn btn-primary btn-block" type="submit">Add Vehicle</button></form>`;
 }
@@ -649,6 +680,12 @@ async function exportCSV(vehicleId){
   const blob=await r.blob();
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=`roadlog-vehicle-${vehicleId}.csv`;a.click();URL.revokeObjectURL(url);
+}
+async function exportExpenseCSV(vehicleId){
+  const r=await fetch(`/api/vehicles/${vehicleId}/expenses/export`,{headers:{'Authorization':'Bearer '+token}});
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`roadlog-expenses-${vehicleId}.csv`;a.click();URL.revokeObjectURL(url);
 }
 function startImportSelect(vehicleId){
   state.vehicleId=vehicleId;state.page='importSelect';render();

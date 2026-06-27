@@ -59,6 +59,10 @@ func main() {
 		auth.POST("/vehicles/:id/expenses", handlers.CreateExpense)
 		auth.PUT("/expenses/:id", handlers.UpdateExpense)
 		auth.DELETE("/expenses/:id", handlers.DeleteExpense)
+		auth.GET("/vehicles/:id/expenses/export", handlers.ExportExpenseCSV)
+
+		auth.POST("/fillups/bulk-delete", handlers.BulkDeleteFillups)
+		auth.POST("/expenses/bulk-delete", handlers.BulkDeleteExpenses)
 
 		auth.GET("/vehicles/:id/fillups/prefill", handlers.GetFillupPrefill)
 		auth.GET("/vehicles/:id/stats", handlers.GetVehicleStats)
