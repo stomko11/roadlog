@@ -62,6 +62,25 @@ func SendNotification(title, message string) {
 	}
 }
 
+// POST /api/notifications/test
+func TestNotification(c *gin.Context) {
+	var input struct {
+		Type   string `json:"type"`
+		Config string `json:"config"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	switch input.Type {
+	case "pushover":
+		sendPushover(input.Config, "🚗 Roadlog Test", "Notifications are working!")
+	case "webhook":
+		sendWebhook(input.Config, "🚗 Roadlog Test", "Notifications are working!")
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
 func sendPushover(cfgJSON, title, message string) {
 	var cfg struct {
 		Token string `json:"token"`
@@ -87,19 +106,31 @@ func sendWebhook(cfgJSON, title, message string) {
 	http.Post(cfg.URL, "application/json", bytes.NewReader(body))
 }
 
-// RunReminderScheduler checks daily for reminders that are due soon
+// RunReminderScheduler checks every 15 minutes for reminders that are due soon.
+// Also runs immediately on startup.
 func RunReminderScheduler() {
 	go func() {
+		checkReminders() // run immediately on startup
 		for {
-			time.Sleep(24 * time.Hour)
+			time.Sleep(15 * time.Minute)
 			checkReminders()
 		}
 	}()
 }
 
+func getTimezone() *time.Location {
+	var pref models.UserPreference
+	if db.DB.Where("`key` = ?", "timezone").First(&pref).Error == nil && pref.Value != "" {
+		if loc, err := time.LoadLocation(pref.Value); err == nil {
+			return loc
+		}
+	}
+	return time.Local
+}
+
 func checkReminders() {
-	now := time.Now()
-	soon := now.AddDate(0, 0, 7)
+	loc := getTimezone()
+	now := time.Now().In(loc)
 
 	var reminders []models.Reminder
 	db.DB.Where("done = ? AND notified_at IS NULL", false).Find(&reminders)
@@ -107,6 +138,11 @@ func checkReminders() {
 	for _, r := range reminders {
 		notify := false
 		msg := ""
+		days := r.NotifyDaysBefore
+		if days == 0 {
+			days = 7
+		}
+		soon := now.AddDate(0, 0, days)
 
 		if r.DueDate != nil && r.DueDate.Before(soon) {
 			notify = true
@@ -114,7 +150,6 @@ func checkReminders() {
 		}
 
 		if r.DueOdometer != nil {
-			// Check latest odometer for this vehicle
 			var lastFillup models.Fillup
 			if db.DB.Where("vehicle_id = ?", r.VehicleID).Order("odometer desc").First(&lastFillup).Error == nil {
 				if *r.DueOdometer-lastFillup.Odometer <= 500 {
@@ -131,6 +166,25 @@ func checkReminders() {
 			if msg == "" {
 				msg = r.Notes
 			}
+			SendNotification(title, msg)
+			db.DB.Model(&r).Update("notified_at", now)
+		}
+	}
+
+	// Check recurring expenses
+	var recurringExpenses []models.Expense
+	db.DB.Where("recurring = ? AND recurring_active = ? AND notified_at IS NULL", true, true).Find(&recurringExpenses)
+	for _, r := range recurringExpenses {
+		days := r.NotifyDaysBefore
+		if days == 0 {
+			days = 7
+		}
+		threshold := now.AddDate(0, 0, days)
+		if r.NextDue != nil && r.NextDue.Before(threshold) {
+			var v models.Vehicle
+			db.DB.First(&v, r.VehicleID)
+			title := fmt.Sprintf("💰 %s - %s", v.Name, r.Category)
+			msg := fmt.Sprintf("Due: %s · %s", r.NextDue.Format("2006-01-02"), r.Notes)
 			SendNotification(title, msg)
 			db.DB.Model(&r).Update("notified_at", now)
 		}

@@ -41,13 +41,19 @@ type Fillup struct {
 }
 
 type Expense struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	VehicleID uint      `json:"vehicleId"`
-	Date      time.Time `json:"date"`
-	Amount    float64   `json:"amount"`
-	Category  string    `json:"category"`
-	Notes     string    `json:"notes"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID               uint       `json:"id" gorm:"primaryKey"`
+	VehicleID        uint       `json:"vehicleId"`
+	Date             time.Time  `json:"date"`
+	Amount           float64    `json:"amount"`
+	Category         string     `json:"category"`
+	Notes            string     `json:"notes"`
+	Recurring        bool       `json:"recurring"`
+	Interval         string     `json:"interval"`
+	NextDue          *time.Time `json:"nextDue"`
+	NotifyDaysBefore int        `json:"notifyDaysBefore" gorm:"default:7"`
+	RecurringActive  *bool      `json:"recurringActive" gorm:"default:true"`
+	NotifiedAt       *time.Time `json:"notifiedAt"`
+	CreatedAt        time.Time  `json:"createdAt"`
 }
 
 type UserPreference struct {
@@ -91,32 +97,20 @@ type VehicleStats struct {
 	TotalDistance  float64 `json:"totalDistance"`
 }
 
-type RecurringExpense struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	VehicleID uint      `json:"vehicleId"`
-	Amount    float64   `json:"amount"`
-	Category  string    `json:"category"`
-	Interval  string    `json:"interval"`
-	StartDate time.Time `json:"startDate"`
-	EndDate   *time.Time `json:"endDate"`
-	Notes     string    `json:"notes"`
-	Active    *bool     `json:"active" gorm:"default:true"`
-	CreatedAt time.Time `json:"createdAt"`
-}
-
 type Reminder struct {
-	ID           uint       `json:"id" gorm:"primaryKey"`
-	VehicleID    uint       `json:"vehicleId"`
-	Title        string     `json:"title"`
-	DueDate      *time.Time `json:"dueDate"`
-	DueOdometer  *float64   `json:"dueOdometer"`
-	RepeatMonths int        `json:"repeatMonths"`
-	RepeatKm     float64    `json:"repeatKm"`
-	Notes        string     `json:"notes"`
-	Done         bool       `json:"done"`
-	DoneDate     *time.Time `json:"doneDate"`
-	NotifiedAt   *time.Time `json:"notifiedAt"`
-	CreatedAt    time.Time  `json:"createdAt"`
+	ID               uint       `json:"id" gorm:"primaryKey"`
+	VehicleID        uint       `json:"vehicleId"`
+	Title            string     `json:"title"`
+	DueDate          *time.Time `json:"dueDate"`
+	DueOdometer      *float64   `json:"dueOdometer"`
+	RepeatMonths     int        `json:"repeatMonths"`
+	RepeatKm         float64    `json:"repeatKm"`
+	NotifyDaysBefore int        `json:"notifyDaysBefore" gorm:"default:7"`
+	Notes            string     `json:"notes"`
+	Done             bool       `json:"done"`
+	DoneDate         *time.Time `json:"doneDate"`
+	NotifiedAt       *time.Time `json:"notifiedAt"`
+	CreatedAt        time.Time  `json:"createdAt"`
 }
 
 type NotificationConfig struct {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"roadlog/db"
 	"roadlog/models"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -90,9 +91,9 @@ func GetDashboard(c *gin.Context) {
 		d.TotalDistance += max - vOdoMin[vid]
 	}
 
-	// Add expenses
+	// Add expenses (exclude recurring templates)
 	var expenses []models.Expense
-	qe := db.DB.Where("vehicle_id IN ?", statsVehicleIDs).Order("date desc")
+	qe := db.DB.Where("vehicle_id IN ? AND recurring = ?", statsVehicleIDs, false).Order("date desc")
 	if from != "" && to != "" {
 		qe = qe.Where("date >= ? AND date <= ?", from+"T00:00:00Z", to+"T23:59:59Z")
 	} else if from != "" {
@@ -108,27 +109,6 @@ func GetDashboard(c *gin.Context) {
 		}
 		monthly[key].TotalSpent += e.Amount
 		monthly[key].ExpenseSpent += e.Amount
-	}
-
-	// Pro-rate recurring expenses into monthly totals
-	var recurring []models.RecurringExpense
-	db.DB.Where("vehicle_id IN ? AND active = ?", statsVehicleIDs, true).Find(&recurring)
-	for _, r := range recurring {
-		monthlyAmount := r.Amount
-		switch r.Interval {
-		case "quarterly":
-			monthlyAmount = r.Amount / 3
-		case "yearly":
-			monthlyAmount = r.Amount / 12
-		}
-		// Add to each month in the displayed range
-		for key, m := range monthly {
-			m.TotalSpent += monthlyAmount
-			m.ExpenseSpent += monthlyAmount
-			monthly[key] = m
-		}
-		d.TotalSpent += monthlyAmount * float64(len(monthly))
-		d.RecurringSpent += monthlyAmount * float64(len(monthly))
 	}
 
 	for _, m := range monthly {
@@ -190,4 +170,39 @@ func GetDashboard(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, d)
+}
+
+func GetDueSoon(c *gin.Context) {
+	now := time.Now()
+	soon := now.AddDate(0, 0, 30)
+
+	var reminders []models.Reminder
+	db.DB.Where("done = ? AND due_date IS NOT NULL AND due_date <= ?", false, soon).Find(&reminders)
+
+	type ReminderItem struct {
+		models.Reminder
+		VehicleName string `json:"vehicleName"`
+	}
+	var reminderItems []ReminderItem
+	for _, r := range reminders {
+		var v models.Vehicle
+		db.DB.First(&v, r.VehicleID)
+		reminderItems = append(reminderItems, ReminderItem{Reminder: r, VehicleName: v.Name})
+	}
+
+	var expenses []models.Expense
+	db.DB.Where("recurring = ? AND recurring_active = ? AND next_due <= ?", true, true, soon).Find(&expenses)
+
+	type ExpenseItem struct {
+		models.Expense
+		VehicleName string `json:"vehicleName"`
+	}
+	var expenseItems []ExpenseItem
+	for _, e := range expenses {
+		var v models.Vehicle
+		db.DB.First(&v, e.VehicleID)
+		expenseItems = append(expenseItems, ExpenseItem{Expense: e, VehicleName: v.Name})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"reminders": reminderItems, "expenses": expenseItems})
 }

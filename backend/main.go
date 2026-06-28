@@ -89,10 +89,10 @@ func main() {
 		auth.PUT("/evcc/:id", handlers.UpdateVehicleEVCCSource)
 		auth.POST("/vehicles/:id/evcc/sync", handlers.SyncVehicleEVCC)
 
-		auth.GET("/vehicles/:id/recurring", handlers.GetRecurring)
-		auth.POST("/vehicles/:id/recurring", handlers.CreateRecurring)
-		auth.PUT("/recurring/:id", handlers.UpdateRecurring)
-		auth.DELETE("/recurring/:id", handlers.DeleteRecurring)
+		auth.POST("/expenses/:id/confirm", handlers.ConfirmRecurringExpense)
+		auth.POST("/expenses/:id/end", handlers.EndRecurringExpense)
+
+		auth.GET("/due-soon", handlers.GetDueSoon)
 
 		auth.GET("/vehicles/:id/reminders", handlers.GetReminders)
 		auth.POST("/vehicles/:id/reminders", handlers.CreateReminder)
@@ -104,6 +104,7 @@ func main() {
 		auth.POST("/notifications", handlers.CreateNotification)
 		auth.PUT("/notifications/:id", handlers.UpdateNotification)
 		auth.DELETE("/notifications/:id", handlers.DeleteNotification)
+		auth.POST("/notifications/test", handlers.TestNotification)
 
 		auth.GET("/audit", handlers.GetAuditLog)
 	}

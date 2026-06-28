@@ -211,6 +211,7 @@ async function render(pushState=true){
     app.innerHTML=`${navBar('dashboard')}<div class="header"><h1>Dashboard</h1><select class="period-select" onchange="state.period=this.value;render()"><option value="month" ${state.period==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.period==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.period==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.period==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.period==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.period==='all'?'selected':''}>All Time</option><option value="custom" ${state.period==='custom'?'selected':''}>Custom...</option></select></div>
     ${state.period==='custom'?`<div style="display:flex;gap:.5rem;margin-bottom:1rem"><input type="date" value="${state.customFrom}" onchange="state.customFrom=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"><input type="date" value="${state.customTo}" onchange="state.customTo=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"></div>`:''}
     <div style="margin-bottom:1rem;display:flex;gap:.5rem"><button class="btn btn-primary" onclick="quickAddExpense()">+ Fill-up</button><button class="btn" style="background:#10b981" onclick="quickAddOtherExpense()">+ Expense</button></div>
+    <div id="due-soon-section"></div>
     <div class="stats">
       <div class="stat-card"><div class="value">${d.totalVehicles}</div><div class="label">Vehicles</div></div>
       <div class="stat-card"><div class="value">${d.totalFillups}</div><div class="label">Fill-ups</div></div>
@@ -263,6 +264,7 @@ async function render(pushState=true){
     <div id="vehicle-comparison"></div>
     <div class="fab-container" id="fab"><button class="fab" onclick="document.getElementById('fab').classList.toggle('open')">+</button><div class="fab-menu"><button class="fab-item" style="background:var(--accent)" onclick="quickAddExpense()">⛽ Fill-up</button><button class="fab-item" style="background:#10b981" onclick="quickAddOtherExpense()">🧾 Expense</button></div></div>`;
     if(state.vehicles.length>1)loadVehicleComparison(range);
+    loadDueSoon();
 
   } else if(state.page==='vehicles'){
     try{state.vehicles=await api('/vehicles')}catch(e){return}
@@ -280,7 +282,7 @@ async function render(pushState=true){
     const maxCons=Math.max(...consumption.map(p=>p.consumption),1);
     const maxPrice=Math.max(...chartData.map(p=>p.pricePerUnit),1);
     let expenses=[];try{expenses=await api(`/vehicles/${state.vehicleId}/expenses`)}catch(e){}
-    const expTotal=expenses.reduce((s,e)=>s+e.amount,0);
+    const expTotal=expenses.filter(e=>!e.recurring||e.nextDue!==e.date).reduce((s,e)=>s+e.amount,0);
     app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><button class="btn btn-sm" style="background:var(--border)" onclick="editVehicle(${state.vehicleId})">✏️</button></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"><button class="btn btn-primary btn-sm" onclick="goFillup()">+ Fill-up</button><button class="btn btn-sm" style="background:#10b981" onclick="goExpense()">+ Expense</button><button class="btn btn-sm" style="background:var(--border)" onclick="syncEVCC(${state.vehicleId})">⚡ Sync EVCC</button><button class="btn btn-sm" style="background:var(--border)" onclick="startImportSelect(${state.vehicleId})">⬆ Import</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportCSV(${state.vehicleId})">⬇ Fuel CSV</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportExpenseCSV(${state.vehicleId})">⬇ Expense CSV</button></div>
     <div class="header"><h2 style="margin:0">${vehicle.name}</h2><select class="period-select" onchange="state.vPeriod=this.value;render()"><option value="month" ${state.vPeriod==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.vPeriod==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.vPeriod==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.vPeriod==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.vPeriod==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.vPeriod==='all'?'selected':''}>All Time</option></select></div>
@@ -289,11 +291,10 @@ async function render(pushState=true){
     ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
     ${chartData.length>1?`<div class="chart-section"><h3>Price Trend (${curr}/${u.unit})</h3><div class="vbar-chart">${chartData.map(p=>`<div class="vbar bar-tip" style="height:${(p.pricePerUnit/maxPrice*100).toFixed(0)}%;background:#f59e0b" data-tip="${p.date.slice(5)}: ${curr}${p.pricePerUnit.toFixed(3)}"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)"><span>${chartData[0].date.slice(5)}</span><span>${chartData[chartData.length-1].date.slice(5)}</span></div></div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center"><h2>Fill-up History</h2>${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${(()=>{const pg=state.fPage||1,ps=10,total=state.fillups.length,pages=Math.ceil(total/ps),items=state.fillups.slice((pg-1)*ps,pg*ps);return items.length?items.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} ${distUnit} · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'fPage'):''):'<p class="empty">No fill-ups yet.</p>'})()}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}
-    <div id="recurring-card"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>{const icon=e.recurring?(e.recurringActive===false?'<span style="opacity:.4">🔁</span>':'🔁'):'🧾';const badge=e.recurring&&e.recurringActive!==false?` <span style="font-size:.7rem;background:var(--border);border-radius:.3rem;padding:.1rem .3rem">${e.interval} · next ${e.nextDue?new Date(e.nextDue).toLocaleDateString():''}</span>`:'';return`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${icon} ${new Date(e.date).toLocaleDateString()}${badge}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`}).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}
     <div id="reminders-section"></div>`;
     if(vehicle.fuelType==='Electric'||vehicle.fuelType==='Plugin Hybrid')loadEVDashboard();
-    loadRecurringCard();loadRemindersSection();
+    loadRemindersSection();
 
   } else if(state.page==='fillup'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
@@ -333,12 +334,18 @@ async function render(pushState=true){
     </form>`;
 
   } else if(state.page==='addExpense'){
+    const ef=state.exForm||{};
     app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Expense</h2></div>
     <form onsubmit="submitExpense(event)">
-    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ex_date" required value="${new Date().toISOString().slice(0,16)}" onclick="this.showPicker()"></div>
-    <div class="form-group"><label>Amount (${curr})</label><input type="number" step="0.01" id="ex_amount" required placeholder="e.g. 45.00"></div>
-    <div class="form-group"><label>Category</label><select id="ex_cat"><option>Insurance</option><option>Service</option><option>Repair</option><option>Tires</option><option>Car Wash</option><option>Parking</option><option>Tolls</option><option>Tax</option><option>Other</option></select></div>
-    <div class="form-group"><label>Notes</label><input id="ex_notes" placeholder="Optional"></div>
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ex_date" required value="${ef.date||new Date().toISOString().slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Amount (${curr})</label><input type="text" inputmode="decimal" id="ex_amount" required value="${ef.amount||''}" placeholder="e.g. 45.00"></div>
+    <div class="form-group"><label>Category</label><select id="ex_cat">${['Insurance','Service','Repair','Tires','Car Wash','Parking','Tolls','Tax','Other'].map(c=>`<option ${c===(ef.cat||'')?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Notes</label><input id="ex_notes" value="${ef.notes||''}" placeholder="Optional"></div>
+    <div class="form-group"><div style="display:flex;align-items:center;gap:.5rem"><button type="button" class="toggle ${state.exRecurring?'on':''}" onclick="saveExForm();state.exRecurring=!state.exRecurring;render()"></button><span>🔁 Recurring</span></div></div>
+    ${state.exRecurring?`<div class="form-group"><label>Interval</label><select id="ex_interval"><option value="monthly" ${ef.interval==='monthly'?'selected':''}>Monthly</option><option value="quarterly" ${ef.interval==='quarterly'?'selected':''}>Quarterly</option><option value="yearly" ${ef.interval==='yearly'?'selected':''}>Yearly</option></select></div>
+    <div class="form-group"><div style="display:flex;align-items:center;gap:.5rem"><button type="button" class="toggle ${state.exPaid!==false?'on':''}" onclick="saveExForm();state.exPaid=!state.exPaid;render()"></button><span>Already paid today</span></div><div style="font-size:.75rem;color:var(--muted)">Logs expense now, sets next due automatically</div></div>
+    ${state.exPaid===false?'<div class="form-group"><label>Next due</label><input type="date" id="ex_due" value="'+(ef.due||'')+'" required></div>':''}
+    <div class="form-group"><label>Notify days before</label><input type="number" id="ex_notify" value="${ef.notify||7}"></div>`:''}
     <button class="btn btn-primary btn-block" type="submit">Save</button></form>`;
 
   } else if(state.page==='editExpense'){
@@ -346,9 +353,15 @@ async function render(pushState=true){
     app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Expense</h2></div>
     <form onsubmit="submitEditExpense(event)">
     <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="eex_date" required value="${e.date.slice(0,16)}" onclick="this.showPicker()"></div>
-    <div class="form-group"><label>Amount (${curr})</label><input type="number" step="0.01" id="eex_amount" required value="${e.amount}"></div>
+    <div class="form-group"><label>Amount (${curr})</label><input type="text" inputmode="decimal" id="eex_amount" required value="${e.amount}"></div>
     <div class="form-group"><label>Category</label><select id="eex_cat">${['Insurance','Service','Repair','Tires','Car Wash','Parking','Tolls','Tax','Other'].map(c=>`<option ${c===e.category?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="form-group"><label>Notes</label><input id="eex_notes" value="${e.notes||''}"></div>
+    ${e.recurring?`<div style="border-top:1px solid var(--border);padding-top:.75rem;margin-top:.75rem">
+    <div style="font-size:.85rem;color:var(--accent);margin-bottom:.5rem">🔁 Recurring settings</div>
+    <div class="form-group"><label>Interval</label><select id="eex_interval"><option value="monthly" ${e.interval==='monthly'?'selected':''}>Monthly</option><option value="quarterly" ${e.interval==='quarterly'?'selected':''}>Quarterly</option><option value="yearly" ${e.interval==='yearly'?'selected':''}>Yearly</option></select></div>
+    <div class="form-group"><label>Next due</label><input type="date" id="eex_due" value="${e.nextDue?e.nextDue.slice(0,10):''}"></div>
+    <div class="form-group"><label>Notify days before</label><input type="number" id="eex_notify" value="${e.notifyDaysBefore||7}"></div>
+    </div>`:''}
     <button class="btn btn-primary btn-block" type="submit">Save</button>
     <button type="button" class="btn btn-block" style="background:#ef4444;margin-top:.5rem" onclick="deleteExpense(${e.id})">Delete</button></form>`;
 
@@ -434,6 +447,7 @@ async function render(pushState=true){
       <div class="setting-row"><span>Currency</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeCurrency(this.value)">${Object.entries(currencies).map(([k,v])=>'<option value="'+k+'" '+(k===s.currency?'selected':'')+'>'+v+' ('+k+')</option>').join('')}</select></div>
       <div class="setting-row"><span>Volume unit</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeVolumeUnit(this.value)"><option value="L" ${(s.volumeUnit||'L')==='L'?'selected':''}>Liters (L)</option><option value="gal" ${s.volumeUnit==='gal'?'selected':''}>Gallons (gal)</option></select></div>
       <div class="setting-row"><span>Distance unit</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeDistanceUnit(this.value)"><option value="km" ${(s.distanceUnit||'km')==='km'?'selected':''}>Kilometers (km)</option><option value="mi" ${s.distanceUnit==='mi'?'selected':''}>Miles (mi)</option></select></div>
+      <div class="setting-row"><span>Timezone</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeTZ(this.value)">${['','Europe/Bratislava','Europe/Prague','Europe/Berlin','Europe/Vienna','Europe/Warsaw','Europe/Budapest','Europe/London','Europe/Paris','Europe/Rome','Europe/Madrid','Europe/Amsterdam','Europe/Brussels','Europe/Zurich','Europe/Stockholm','Europe/Oslo','Europe/Helsinki','Europe/Athens','Europe/Istanbul','US/Eastern','US/Central','US/Mountain','US/Pacific','Asia/Tokyo','Asia/Shanghai','Australia/Sydney'].map(tz=>'<option value="'+tz+'" '+(tz===(s.timezone||'')?'selected':'')+'>'+(tz||'Auto (server local)')+'</option>').join('')}</select></div>
     </div>
 
     <div class="card" style="cursor:default;margin-top:1rem">
@@ -470,12 +484,6 @@ async function render(pushState=true){
     </div>
 
     <div class="card" style="cursor:default;margin-top:1rem">
-      <h2 style="margin-bottom:.5rem">Recurring Expenses</h2>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Monthly/quarterly/yearly costs per vehicle</p>
-      <div id="settings-recurring"></div>
-    </div>
-
-    <div class="card" style="cursor:default;margin-top:1rem">
       <h2 style="margin-bottom:.5rem">Notifications</h2>
       <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Receive alerts when reminders are due</p>
       <div id="settings-notifications"></div>
@@ -487,7 +495,7 @@ async function render(pushState=true){
     </div>
 
     <button class="btn btn-sm" style="background:var(--border);margin-top:1rem" onclick="logout()">Logout</button>`;
-    loadSettingsRecurring();loadSettingsNotifications();loadAuditLog();
+    loadSettingsNotifications();loadAuditLog();
   }
 }
 
@@ -510,6 +518,10 @@ async function changeDistanceUnit(val){
   state.settings.distanceUnit=val;distUnit=val;
   await api('/settings',{method:'PUT',body:JSON.stringify(state.settings)});
   render();
+}
+async function changeTZ(val){
+  state.settings.timezone=val;
+  await api('/settings',{method:'PUT',body:JSON.stringify(state.settings)});
 }
 async function renameStation(id){
   const st=state.allStations.find(s=>s.id===id);
@@ -617,10 +629,27 @@ async function removeStation(id){
   renderStationDropdown(true);
 }
 function editVehicle(id){state.vehicleId=id;state.page='editVehicle';render()}
-function goExpense(){state.page='addExpense';render()}
+function goExpense(){state.page='addExpense';state.exRecurring=false;state.exPaid=true;state.exForm=null;render()}
+function saveExForm(){state.exForm={date:document.getElementById('ex_date')?.value,amount:document.getElementById('ex_amount')?.value,cat:document.getElementById('ex_cat')?.value,notes:document.getElementById('ex_notes')?.value,interval:document.getElementById('ex_interval')?.value,due:document.getElementById('ex_due')?.value,notify:document.getElementById('ex_notify')?.value}}
 async function submitExpense(e){
   e.preventDefault();
-  await api(`/vehicles/${state.vehicleId}/expenses`,{method:'POST',body:JSON.stringify({date:new Date(document.getElementById('ex_date').value).toISOString(),amount:+document.getElementById('ex_amount').value,category:document.getElementById('ex_cat').value,notes:document.getElementById('ex_notes').value})});
+  const data={date:new Date(document.getElementById('ex_date').value).toISOString(),amount:+document.getElementById('ex_amount').value,category:document.getElementById('ex_cat').value,notes:document.getElementById('ex_notes').value};
+  if(state.exRecurring){
+    const interval=document.getElementById('ex_interval').value;
+    data.recurring=true;data.interval=interval;data.notifyDaysBefore=+document.getElementById('ex_notify').value||7;
+    if(state.exPaid===false){
+      // Future: just a template, next due from picker
+      data.nextDue=new Date(document.getElementById('ex_due').value).toISOString();data.date=data.nextDue;
+    } else {
+      // Already paid: next due = expense date + interval
+      const d=new Date(document.getElementById('ex_date').value);
+      if(interval==='monthly')d.setMonth(d.getMonth()+1);
+      else if(interval==='quarterly')d.setMonth(d.getMonth()+3);
+      else d.setFullYear(d.getFullYear()+1);
+      data.nextDue=d.toISOString();
+    }
+  }
+  await api(`/vehicles/${state.vehicleId}/expenses`,{method:'POST',body:JSON.stringify(data)});
   openVehicle(state.vehicleId);
 }
 function editExpense(id,vehicleId){
@@ -631,7 +660,9 @@ function editExpense(id,vehicleId){
 async function submitEditExpense(e){
   e.preventDefault();
   const ex=state.editingExpense;
-  await api(`/expenses/${ex.id}`,{method:'PUT',body:JSON.stringify({date:new Date(document.getElementById('eex_date').value).toISOString(),amount:+document.getElementById('eex_amount').value,category:document.getElementById('eex_cat').value,notes:document.getElementById('eex_notes').value})});
+  const data={date:new Date(document.getElementById('eex_date').value).toISOString(),amount:parseNum('eex_amount'),category:document.getElementById('eex_cat').value,notes:document.getElementById('eex_notes').value};
+  if(ex.recurring){data.interval=document.getElementById('eex_interval').value;const due=document.getElementById('eex_due').value;if(due)data.nextDue=new Date(due).toISOString();data.notifyDaysBefore=+document.getElementById('eex_notify').value||7}
+  await api(`/expenses/${ex.id}`,{method:'PUT',body:JSON.stringify(data)});
   openVehicle(state.vehicleId);
 }
 async function deleteExpense(id){
@@ -789,6 +820,29 @@ async function loadEVDashboard(){
     <div style="font-size:.8rem;color:var(--muted);margin-top:.75rem">${ev.sessions} EVCC sessions · ${curr}${ev.totalCost.toFixed(2)} total cost · ${ev.totalEnergy.toFixed(1)} kWh</div>
   </div>`;
 }
+async function loadDueSoon(){
+  const el=document.getElementById('due-soon-section');if(!el)return;
+  let data;try{data=await api('/due-soon')}catch(e){return}
+  const reminders=data.reminders||[];const expenses=data.expenses||[];
+  if(!reminders.length&&!expenses.length){el.innerHTML='';return}
+  let html='<div style="margin:1rem 0;padding:1rem;border-radius:.75rem;background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(16,185,129,.08));border:1px solid var(--border)"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem"><span style="font-size:1.2rem">⏰</span><h2 style="margin:0;font-size:1.1rem">Due Soon</h2></div>';
+  expenses.forEach(e=>{
+    html+=`<div class="card" style="cursor:default;margin-bottom:.5rem"><div style="display:flex;justify-content:space-between;align-items:center"><div>🔁 <strong>${e.notes||e.category}</strong><div style="font-size:.85rem;color:var(--muted)">${e.vehicleName} · Due: ${new Date(e.nextDue).toLocaleDateString()} · ${curr}${e.amount.toFixed(2)}</div></div><div style="display:flex;gap:.25rem"><button class="btn btn-sm" style="background:#10b981" title="Confirm payment" onclick="confirmRecurring(${e.id})">✅</button><button class="btn btn-sm" style="background:var(--border)" title="Edit amount & confirm" onclick="editConfirmRecurring(${e.id},${e.amount})">✏️</button><button class="btn btn-sm" style="background:#ef4444" title="End recurring" onclick="endRecurring(${e.id})">⏹️</button></div></div></div>`;
+  });
+  reminders.forEach(r=>{
+    html+=`<div class="card" style="cursor:default;margin-bottom:.5rem"><div style="display:flex;justify-content:space-between;align-items:center"><div>🔔 <strong>${r.title}</strong><div style="font-size:.85rem;color:var(--muted)">${r.vehicleName} · Due: ${new Date(r.dueDate).toLocaleDateString()}</div></div><div><button class="btn btn-sm" style="background:#10b981" title="Mark as done" onclick="markReminderDoneDash(${r.id})">✅</button></div></div></div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+async function confirmRecurring(id){await api(`/expenses/${id}/confirm`,{method:'POST'});render()}
+async function editConfirmRecurring(id,currentAmt){
+  const amt=prompt('Amount:',currentAmt);if(amt===null)return;
+  await api(`/expenses/${id}/confirm`,{method:'POST',body:JSON.stringify({amount:+amt})});render();
+}
+async function endRecurring(id){if(confirm('End this scheduled expense?')){await api(`/expenses/${id}/end`,{method:'POST'});render()}}
+async function markReminderDoneDash(id){await api(`/reminders/${id}/done`,{method:'POST'});render()}
+
 async function quickAddExpense(){
   const vehicles=await api('/vehicles?active=true');
   if(!vehicles||vehicles.length===0){alert('Add a vehicle first');state.page='vehicles';render();return}
@@ -987,16 +1041,6 @@ async function doRestore(input){
   }catch(err){alert('Restore failed: '+err.message)}
 }
 
-async function loadRecurringCard(){
-  const el=document.getElementById('recurring-card');if(!el)return;
-  let items;try{items=await api(`/vehicles/${state.vehicleId}/recurring`)}catch(e){return}
-  const active=items.filter(r=>r.active!==false);
-  if(!active.length){el.innerHTML='';return}
-  let monthlyTotal=0;
-  active.forEach(r=>{let m=r.amount;if(r.interval==='quarterly')m=r.amount/3;if(r.interval==='yearly')m=r.amount/12;monthlyTotal+=m});
-  el.innerHTML=`<div class="stat-card" style="margin-top:1rem;text-align:center"><div class="value">${curr}${monthlyTotal.toFixed(0)}</div><div class="label">Monthly Recurring Cost</div></div>`;
-}
-
 async function loadRemindersSection(){
   const el=document.getElementById('reminders-section');if(!el)return;
   let items;try{items=await api(`/vehicles/${state.vehicleId}/reminders`)}catch(e){return}
@@ -1035,53 +1079,31 @@ async function deleteReminder(id){
   if(confirm('Delete this reminder?')){await api(`/reminders/${id}`,{method:'DELETE'});loadRemindersSection()}
 }
 
-// Settings page additions
-async function loadSettingsRecurring(){
-  const el=document.getElementById('settings-recurring');if(!el)return;
-  const vehicles=state.vehicles||await api('/vehicles');
-  let html='';
-  for(const v of vehicles){
-    const items=await api(`/vehicles/${v.id}/recurring`);
-    html+=`<div style="margin-bottom:1rem"><strong style="color:var(--accent)">${v.name}</strong>`;
-    html+=items.map(r=>`<div class="setting-row"><div><span>${r.category}: ${curr}${r.amount.toFixed(2)}/${r.interval}</span><div style="font-size:.75rem;color:var(--muted)">${r.notes||''} ${r.active===false?'(inactive)':''}</div></div><div><button class="btn btn-sm" style="background:#ef4444" onclick="deleteRecurring(${r.id})">✕</button></div></div>`).join('');
-    html+=`<button class="btn btn-sm" style="background:var(--border);margin-top:.25rem" onclick="showAddRecurring(${v.id})">+ Add</button><div id="rec-form-${v.id}"></div></div>`;
-  }
-  el.innerHTML=html;
-}
-
-function showAddRecurring(vid){
-  document.getElementById('rec-form-'+vid).innerHTML=`<form onsubmit="submitRecurring(event,${vid})" style="margin-top:.5rem">
-  <div class="form-group"><label>Amount (${curr})</label><input type="number" step="0.01" id="rec_amt_${vid}" required></div>
-  <div class="form-group"><label>Category</label><select id="rec_cat_${vid}"><option>Insurance</option><option>Service</option><option>Leasing</option><option>Tax</option><option>Parking</option><option>Other</option></select></div>
-  <div class="form-group"><label>Interval</label><select id="rec_int_${vid}"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
-  <div class="form-group"><label>Start Date</label><input type="date" id="rec_start_${vid}" value="${new Date().toISOString().slice(0,10)}"></div>
-  <div class="form-group"><label>Notes</label><input id="rec_notes_${vid}"></div>
-  <button class="btn btn-sm btn-primary" type="submit">Save</button></form>`;
-}
-
-async function submitRecurring(e,vid){
-  e.preventDefault();
-  await api(`/vehicles/${vid}/recurring`,{method:'POST',body:JSON.stringify({amount:+document.getElementById('rec_amt_'+vid).value,category:document.getElementById('rec_cat_'+vid).value,interval:document.getElementById('rec_int_'+vid).value,startDate:new Date(document.getElementById('rec_start_'+vid).value).toISOString(),notes:document.getElementById('rec_notes_'+vid).value,active:true})});
-  loadSettingsRecurring();
-}
-
-async function deleteRecurring(id){
-  if(confirm('Delete this recurring expense?')){await api(`/recurring/${id}`,{method:'DELETE'});loadSettingsRecurring()}
-}
-
 async function loadSettingsNotifications(){
   const el=document.getElementById('settings-notifications');if(!el)return;
   let items;try{items=await api('/notifications')}catch(e){return}
-  let html=items.map(n=>`<div class="setting-row"><div><strong>${n.type}</strong> <span style="font-size:.8rem;color:var(--muted)">${n.enabled?'Enabled':'Disabled'}</span></div><div><button class="btn btn-sm" style="background:#ef4444" onclick="deleteNotifConfig(${n.id})">✕</button></div></div>`).join('');
+  let html=items.map(n=>{
+    const cfg=JSON.parse(n.config||'{}');
+    const info=n.type==='pushover'?'Token: '+cfg.token?.slice(0,6)+'… / User: '+cfg.user?.slice(0,6)+'…':'URL: '+cfg.url?.slice(0,30)+'…';
+    return `<div class="setting-row"><div><strong>${n.type}</strong> <span style="font-size:.8rem;color:${n.enabled?'#10b981':'var(--muted)'}">${n.enabled?'✓ Enabled':'Disabled'}</span><div style="font-size:.75rem;color:var(--muted)">${info}</div></div><div style="display:flex;gap:.25rem"><button class="btn btn-sm" style="background:var(--border)" onclick="editNotifConfig(${n.id})">✏️</button><button class="btn btn-sm" style="background:#ef4444" onclick="deleteNotifConfig(${n.id})">✕</button></div></div>`;
+  }).join('');
   html+=`<div style="margin-top:.5rem"><button class="btn btn-sm" style="background:var(--border)" onclick="showAddNotifConfig()">+ Add</button></div><div id="notif-form"></div>`;
   el.innerHTML=html;
 }
 
-function showAddNotifConfig(){
-  document.getElementById('notif-form').innerHTML=`<form onsubmit="submitNotifConfig(event)" style="margin-top:.5rem">
-  <div class="form-group"><label>Type</label><select id="nc_type" onchange="toggleNotifFields()"><option value="pushover">Pushover</option><option value="webhook">Webhook</option></select></div>
-  <div id="nc_fields"><div class="form-group"><label>App Token</label><input id="nc_token" placeholder="Pushover app token"></div><div class="form-group"><label>User Key</label><input id="nc_user" placeholder="Pushover user key"></div></div>
-  <button class="btn btn-sm btn-primary" type="submit">Save</button> <button type="button" class="btn btn-sm" style="background:var(--border)" onclick="testNotification()">🔔 Test</button></form>`;
+function showAddNotifConfig(existing){
+  const n=existing||{type:'pushover',config:'{}'};
+  const cfg=JSON.parse(n.config||'{}');
+  document.getElementById('notif-form').innerHTML=`<form onsubmit="${n.id?'submitEditNotif(event,'+n.id+')':'submitNotifConfig(event)'}" style="margin-top:.5rem">
+  <div class="form-group"><label>Type</label><select id="nc_type" onchange="toggleNotifFields()"><option value="pushover" ${n.type==='pushover'?'selected':''}>Pushover</option><option value="webhook" ${n.type==='webhook'?'selected':''}>Webhook</option></select></div>
+  <div id="nc_fields">${n.type==='webhook'?'<div class="form-group"><label>Webhook URL</label><input id="nc_url" value="'+(cfg.url||'')+'" placeholder="https://..."></div>':'<div class="form-group"><label>App Token</label><input id="nc_token" value="'+(cfg.token||'')+'" placeholder="Pushover app token"></div><div class="form-group"><label>User Key</label><input id="nc_user" value="'+(cfg.user||'')+'" placeholder="Pushover user key"></div>'}</div>
+  <div style="display:flex;gap:.5rem"><button class="btn btn-sm btn-primary" type="submit">Save</button><button type="button" class="btn btn-sm" style="background:var(--border)" onclick="testNotification()">🔔 Test</button></div></form>`;
+}
+
+async function editNotifConfig(id){
+  const items=await api('/notifications');
+  const n=items.find(x=>x.id===id);if(!n)return;
+  showAddNotifConfig(n);
 }
 
 function toggleNotifFields(){
@@ -1101,6 +1123,16 @@ async function submitNotifConfig(e){
   loadSettingsNotifications();
 }
 
+async function submitEditNotif(e,id){
+  e.preventDefault();
+  const type=document.getElementById('nc_type').value;
+  let config;
+  if(type==='pushover')config=JSON.stringify({token:document.getElementById('nc_token').value,user:document.getElementById('nc_user').value});
+  else config=JSON.stringify({url:document.getElementById('nc_url').value});
+  await api(`/notifications/${id}`,{method:'PUT',body:JSON.stringify({type,enabled:true,config})});
+  loadSettingsNotifications();
+}
+
 async function deleteNotifConfig(id){
   await api(`/notifications/${id}`,{method:'DELETE'});loadSettingsNotifications();
 }
@@ -1110,17 +1142,14 @@ async function testNotification(){
   let config;
   if(type==='pushover')config=JSON.stringify({token:document.getElementById('nc_token').value,user:document.getElementById('nc_user').value});
   else config=JSON.stringify({url:document.getElementById('nc_url').value});
-  // Save temp, send test, then list
-  await api('/notifications',{method:'POST',body:JSON.stringify({type,enabled:true,config})});
-  alert('Test notification sent (if configured correctly)');
-  loadSettingsNotifications();
+  try{await api('/notifications/test',{method:'POST',body:JSON.stringify({type,config})});alert('Test sent!')}catch(err){alert('Failed: '+err.message)}
 }
 
 async function loadAuditLog(offset=0){
   const el=document.getElementById('settings-audit');if(!el)return;
   let data;try{data=await api(`/audit?limit=20&offset=${offset}`)}catch(e){return}
   const entries=data.entries||[];
-  let html=entries.map(e=>`<div style="padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem"><span style="color:var(--accent)">${e.action}</span> ${e.entityType} #${e.entityId} <span style="color:var(--muted)">${e.details||''}</span><div style="font-size:.75rem;color:var(--muted)">${new Date(e.createdAt).toLocaleString()} · ${e.ip}</div></div>`).join('');
+  let html=entries.map(e=>`<div style="padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem"><span style="color:var(--accent)">${e.action}</span> ${e.entityType} <span style="color:var(--muted)">${e.details||''}</span>${e.vehicleName?' · <strong>'+e.vehicleName+'</strong>':''}<div style="font-size:.75rem;color:var(--muted)">${e.userName||'unknown'} · ${new Date(e.createdAt).toLocaleString()} · ${e.ip}</div></div>`).join('');
   if(!entries.length)html='<p class="empty">No activity yet.</p>';
   const total=data.total||0;
   if(total>20){
