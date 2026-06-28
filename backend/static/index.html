@@ -149,8 +149,10 @@ function getPeriodRange(period){
   if(period==='lastyear'){
     return{from:fmt(new Date(now.getFullYear()-1,0,1)),to:fmt(new Date(now.getFullYear()-1,11,31))};
   }
-  if(period==='custom'&&state.customFrom&&state.customTo){
-    return{from:state.customFrom,to:state.customTo};
+  if(period==='custom'){
+    const f=state.page==='detail'?state.vCustomFrom:state.customFrom;
+    const t=state.page==='detail'?state.vCustomTo:state.customTo;
+    if(f&&t)return{from:f,to:t};
   }
   return null;
 }
@@ -283,11 +285,12 @@ async function render(pushState=true){
     const maxCons=Math.max(...consumption.map(p=>p.consumption),1);
     const maxPrice=Math.max(...chartData.map(p=>p.pricePerUnit),1);
     let expenses=[];try{expenses=await api(`/vehicles/${state.vehicleId}/expenses`)}catch(e){}
-    const expTotal=expenses.filter(e=>!e.recurring||e.nextDue!==e.date).reduce((s,e)=>s+e.amount,0);
+    const expTotal=expenses.filter(e=>(!e.recurring||e.nextDue!==e.date)&&(!range||e.date>=range.from&&e.date<=range.to+'T23:59:59Z')).reduce((s,e)=>s+e.amount,0);
     const expAllTotal=expenses.filter(e=>!e.recurring||e.nextDue!==e.date).reduce((s,e)=>s+e.amount,0);
     app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><button class="btn btn-sm" style="background:var(--border)" onclick="editVehicle(${state.vehicleId})">✏️</button></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"><button class="btn btn-primary btn-sm" onclick="goFillup()">+ Fill-up</button><button class="btn btn-sm" style="background:#10b981" onclick="goExpense()">+ Expense</button><button class="btn btn-sm" style="background:var(--border)" onclick="syncEVCC(${state.vehicleId})">⚡ Sync EVCC</button><button class="btn btn-sm" style="background:var(--border)" onclick="startImportSelect(${state.vehicleId})">⬆ Import</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportCSV(${state.vehicleId})">⬇ Fuel CSV</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportExpenseCSV(${state.vehicleId})">⬇ Expense CSV</button></div>
-    <div class="header"><h2 style="margin:0">${vehicle.name}</h2><select class="period-select" onchange="state.vPeriod=this.value;render()"><option value="month" ${state.vPeriod==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.vPeriod==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.vPeriod==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.vPeriod==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.vPeriod==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.vPeriod==='all'?'selected':''}>All Time</option></select></div>
+    <div class="header"><h2 style="margin:0">${vehicle.name}</h2><select class="period-select" onchange="state.vPeriod=this.value;render()"><option value="month" ${state.vPeriod==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.vPeriod==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.vPeriod==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.vPeriod==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.vPeriod==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.vPeriod==='all'?'selected':''}>All Time</option><option value="custom" ${state.vPeriod==='custom'?'selected':''}>Custom...</option></select></div>
+    ${state.vPeriod==='custom'?`<div style="display:flex;gap:.5rem;margin-bottom:1rem"><input type="date" value="${state.vCustomFrom||''}" onchange="state.vCustomFrom=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"><input type="date" value="${state.vCustomTo||''}" onchange="state.vCustomTo=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"></div>`:''}
     <div class="stats"><div class="stat-card"><div class="value">${s.totalFillups}</div><div class="label">Fill-ups</div></div><div class="stat-card"><div class="value">${curr}${(s.totalSpent+expTotal).toFixed(0)}</div><div class="label">Within Period</div></div><div class="stat-card"><div class="value">${curr}${(sAll.totalSpent+expAllTotal).toFixed(0)}</div><div class="label">Total</div></div><div class="stat-card"><div class="value">${s.avgConsumption.toFixed(1)}</div><div class="label">${u.consumption}</div></div><div class="stat-card"><div class="value">${s.totalDistance.toFixed(0)}</div><div class="label">${distUnit} driven</div></div></div>
     ${(vehicle.fuelType==='Electric'||vehicle.fuelType==='Plugin Hybrid')?'<div id="ev-dashboard"></div>':''}
     ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
