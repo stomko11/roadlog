@@ -71,6 +71,7 @@ func main() {
 		auth.GET("/vehicles/:id/fillups/prefill", handlers.GetFillupPrefill)
 		auth.GET("/vehicles/:id/stats", handlers.GetVehicleStats)
 		auth.GET("/vehicles/:id/chart", handlers.GetVehicleChartData)
+		auth.GET("/vehicles/:id/ev-stats", handlers.GetEVStats)
 
 		auth.GET("/stations", handlers.GetStations)
 		auth.POST("/stations", handlers.CreateStation)

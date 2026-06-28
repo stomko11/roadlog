@@ -104,7 +104,7 @@ func GetVehicleStats(c *gin.Context) {
 	} else if from != "" {
 		q = q.Where("date >= ?", from+"T00:00:00Z")
 	}
-	q.Find(&fillups)
+	q.Where("odometer > 0").Find(&fillups)
 
 	stats.TotalFillups = int64(len(fillups))
 	for _, f := range fillups {
