@@ -23,14 +23,15 @@ func main() {
 	}
 	db.Init()
 	handlers.RunEVCCScheduler()
+	handlers.RunReminderScheduler()
 
 	r := gin.Default()
 	r.Use(cors.Default())
 
 	api := r.Group("/api")
 	{
-		api.POST("/register", handlers.Register)
-		api.POST("/login", handlers.Login)
+		api.POST("/register", handlers.RateLimitMiddleware(), handlers.Register)
+		api.POST("/login", handlers.RateLimitMiddleware(), handlers.Login)
 	}
 
 	auth := api.Group("/", handlers.AuthMiddleware())
@@ -87,6 +88,24 @@ func main() {
 		auth.DELETE("/evcc/:id", handlers.DeleteVehicleEVCCSource)
 		auth.PUT("/evcc/:id", handlers.UpdateVehicleEVCCSource)
 		auth.POST("/vehicles/:id/evcc/sync", handlers.SyncVehicleEVCC)
+
+		auth.GET("/vehicles/:id/recurring", handlers.GetRecurring)
+		auth.POST("/vehicles/:id/recurring", handlers.CreateRecurring)
+		auth.PUT("/recurring/:id", handlers.UpdateRecurring)
+		auth.DELETE("/recurring/:id", handlers.DeleteRecurring)
+
+		auth.GET("/vehicles/:id/reminders", handlers.GetReminders)
+		auth.POST("/vehicles/:id/reminders", handlers.CreateReminder)
+		auth.PUT("/reminders/:id", handlers.UpdateReminder)
+		auth.DELETE("/reminders/:id", handlers.DeleteReminder)
+		auth.POST("/reminders/:id/done", handlers.MarkReminderDone)
+
+		auth.GET("/notifications", handlers.GetNotifications)
+		auth.POST("/notifications", handlers.CreateNotification)
+		auth.PUT("/notifications/:id", handlers.UpdateNotification)
+		auth.DELETE("/notifications/:id", handlers.DeleteNotification)
+
+		auth.GET("/audit", handlers.GetAuditLog)
 	}
 
 	r.GET("/favicon.png", func(c *gin.Context) {

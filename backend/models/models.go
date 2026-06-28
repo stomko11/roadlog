@@ -90,3 +90,49 @@ type VehicleStats struct {
 	AvgConsumption float64 `json:"avgConsumption"`
 	TotalDistance  float64 `json:"totalDistance"`
 }
+
+type RecurringExpense struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	VehicleID uint      `json:"vehicleId"`
+	Amount    float64   `json:"amount"`
+	Category  string    `json:"category"`
+	Interval  string    `json:"interval"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   *time.Time `json:"endDate"`
+	Notes     string    `json:"notes"`
+	Active    *bool     `json:"active" gorm:"default:true"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Reminder struct {
+	ID           uint       `json:"id" gorm:"primaryKey"`
+	VehicleID    uint       `json:"vehicleId"`
+	Title        string     `json:"title"`
+	DueDate      *time.Time `json:"dueDate"`
+	DueOdometer  *float64   `json:"dueOdometer"`
+	RepeatMonths int        `json:"repeatMonths"`
+	RepeatKm     float64    `json:"repeatKm"`
+	Notes        string     `json:"notes"`
+	Done         bool       `json:"done"`
+	DoneDate     *time.Time `json:"doneDate"`
+	NotifiedAt   *time.Time `json:"notifiedAt"`
+	CreatedAt    time.Time  `json:"createdAt"`
+}
+
+type NotificationConfig struct {
+	ID      uint   `json:"id" gorm:"primaryKey"`
+	Type    string `json:"type"`
+	Enabled bool   `json:"enabled"`
+	Config  string `json:"config"`
+}
+
+type AuditEntry struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	UserID     uint      `json:"userId"`
+	Action     string    `json:"action"`
+	EntityType string    `json:"entityType"`
+	EntityID   uint      `json:"entityId"`
+	Details    string    `json:"details"`
+	IP         string    `json:"ip"`
+	CreatedAt  time.Time `json:"createdAt"`
+}

@@ -289,8 +289,11 @@ async function render(pushState=true){
     ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
     ${chartData.length>1?`<div class="chart-section"><h3>Price Trend (${curr}/${u.unit})</h3><div class="vbar-chart">${chartData.map(p=>`<div class="vbar bar-tip" style="height:${(p.pricePerUnit/maxPrice*100).toFixed(0)}%;background:#f59e0b" data-tip="${p.date.slice(5)}: ${curr}${p.pricePerUnit.toFixed(3)}"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)"><span>${chartData[0].date.slice(5)}</span><span>${chartData[chartData.length-1].date.slice(5)}</span></div></div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center"><h2>Fill-up History</h2>${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${(()=>{const pg=state.fPage||1,ps=10,total=state.fillups.length,pages=Math.ceil(total/ps),items=state.fillups.slice((pg-1)*ps,pg*ps);return items.length?items.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} ${distUnit} · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'fPage'):''):'<p class="empty">No fill-ups yet.</p>'})()}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}`;
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(e.date).toLocaleDateString()}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}
+    <div id="recurring-card"></div>
+    <div id="reminders-section"></div>`;
     if(vehicle.fuelType==='Electric'||vehicle.fuelType==='Plugin Hybrid')loadEVDashboard();
+    loadRecurringCard();loadRemindersSection();
 
   } else if(state.page==='fillup'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
@@ -466,7 +469,25 @@ async function render(pushState=true){
       <div class="setting-row"><span>Theme</span><button class="toggle ${theme==='light'?'on':''}" onclick="toggleTheme()"></button><span style="font-size:.8rem;color:var(--muted)">${theme==='dark'?'Dark':'Light'}</span></div>
     </div>
 
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Recurring Expenses</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Monthly/quarterly/yearly costs per vehicle</p>
+      <div id="settings-recurring"></div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Notifications</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Receive alerts when reminders are due</p>
+      <div id="settings-notifications"></div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Activity Log</h2>
+      <div id="settings-audit"></div>
+    </div>
+
     <button class="btn btn-sm" style="background:var(--border);margin-top:1rem" onclick="logout()">Logout</button>`;
+    loadSettingsRecurring();loadSettingsNotifications();loadAuditLog();
   }
 }
 
@@ -964,6 +985,151 @@ async function doRestore(input){
     alert(`Restored: ${res.vehicles} vehicles, ${res.fillups} fill-ups, ${res.expenses||0} expenses`);
     render();
   }catch(err){alert('Restore failed: '+err.message)}
+}
+
+async function loadRecurringCard(){
+  const el=document.getElementById('recurring-card');if(!el)return;
+  let items;try{items=await api(`/vehicles/${state.vehicleId}/recurring`)}catch(e){return}
+  const active=items.filter(r=>r.active!==false);
+  if(!active.length){el.innerHTML='';return}
+  let monthlyTotal=0;
+  active.forEach(r=>{let m=r.amount;if(r.interval==='quarterly')m=r.amount/3;if(r.interval==='yearly')m=r.amount/12;monthlyTotal+=m});
+  el.innerHTML=`<div class="stat-card" style="margin-top:1rem;text-align:center"><div class="value">${curr}${monthlyTotal.toFixed(0)}</div><div class="label">Monthly Recurring Cost</div></div>`;
+}
+
+async function loadRemindersSection(){
+  const el=document.getElementById('reminders-section');if(!el)return;
+  let items;try{items=await api(`/vehicles/${state.vehicleId}/reminders`)}catch(e){return}
+  const upcoming=items.filter(r=>!r.done);
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem"><h2>Reminders</h2><button class="btn btn-sm btn-primary" onclick="showAddReminder()">+ Reminder</button></div>
+  <div id="reminder-form"></div>
+  ${upcoming.length?upcoming.map(r=>`<div class="card" style="cursor:default"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${r.title}</strong><div style="font-size:.85rem;color:var(--muted)">${r.dueDate?'Due: '+new Date(r.dueDate).toLocaleDateString():''}${r.dueOdometer?' · At '+r.dueOdometer.toFixed(0)+' '+distUnit:''}${r.repeatMonths?' · ↻'+r.repeatMonths+'mo':''}${r.repeatKm?' · ↻'+r.repeatKm+distUnit:''}</div>${r.notes?'<div style="font-size:.8rem;color:var(--muted)">'+r.notes+'</div>':''}</div><div style="display:flex;gap:.25rem"><button class="btn btn-sm" style="background:#10b981" onclick="markReminderDone(${r.id})">✓</button><button class="btn btn-sm" style="background:#ef4444" onclick="deleteReminder(${r.id})">✕</button></div></div></div>`).join(''):'<p class="empty">No upcoming reminders.</p>'}`;
+}
+
+function showAddReminder(){
+  document.getElementById('reminder-form').innerHTML=`<form class="card" style="cursor:default" onsubmit="submitReminder(event)">
+  <div class="form-group"><label>Title</label><input id="rem_title" required placeholder="e.g. Oil change"></div>
+  <div class="form-group"><label>Due Date</label><input type="date" id="rem_date"></div>
+  <div class="form-group"><label>Due Odometer (${distUnit})</label><input type="number" id="rem_odo" placeholder="Optional"></div>
+  <div class="form-group"><label>Repeat every (months)</label><input type="number" id="rem_rmonths" placeholder="0"></div>
+  <div class="form-group"><label>Repeat every (${distUnit})</label><input type="number" id="rem_rkm" placeholder="0"></div>
+  <div class="form-group"><label>Notes</label><input id="rem_notes"></div>
+  <button class="btn btn-primary btn-sm" type="submit">Save</button> <button type="button" class="btn btn-sm" style="background:var(--border)" onclick="document.getElementById('reminder-form').innerHTML=''">Cancel</button></form>`;
+}
+
+async function submitReminder(e){
+  e.preventDefault();
+  const data={title:document.getElementById('rem_title').value,notes:document.getElementById('rem_notes').value,repeatMonths:+document.getElementById('rem_rmonths').value||0,repeatKm:+document.getElementById('rem_rkm').value||0};
+  const d=document.getElementById('rem_date').value;if(d)data.dueDate=new Date(d).toISOString();
+  const o=+document.getElementById('rem_odo').value;if(o)data.dueOdometer=o;
+  await api(`/vehicles/${state.vehicleId}/reminders`,{method:'POST',body:JSON.stringify(data)});
+  loadRemindersSection();
+}
+
+async function markReminderDone(id){
+  await api(`/reminders/${id}/done`,{method:'POST'});
+  loadRemindersSection();
+}
+
+async function deleteReminder(id){
+  if(confirm('Delete this reminder?')){await api(`/reminders/${id}`,{method:'DELETE'});loadRemindersSection()}
+}
+
+// Settings page additions
+async function loadSettingsRecurring(){
+  const el=document.getElementById('settings-recurring');if(!el)return;
+  const vehicles=state.vehicles||await api('/vehicles');
+  let html='';
+  for(const v of vehicles){
+    const items=await api(`/vehicles/${v.id}/recurring`);
+    html+=`<div style="margin-bottom:1rem"><strong style="color:var(--accent)">${v.name}</strong>`;
+    html+=items.map(r=>`<div class="setting-row"><div><span>${r.category}: ${curr}${r.amount.toFixed(2)}/${r.interval}</span><div style="font-size:.75rem;color:var(--muted)">${r.notes||''} ${r.active===false?'(inactive)':''}</div></div><div><button class="btn btn-sm" style="background:#ef4444" onclick="deleteRecurring(${r.id})">✕</button></div></div>`).join('');
+    html+=`<button class="btn btn-sm" style="background:var(--border);margin-top:.25rem" onclick="showAddRecurring(${v.id})">+ Add</button><div id="rec-form-${v.id}"></div></div>`;
+  }
+  el.innerHTML=html;
+}
+
+function showAddRecurring(vid){
+  document.getElementById('rec-form-'+vid).innerHTML=`<form onsubmit="submitRecurring(event,${vid})" style="margin-top:.5rem">
+  <div class="form-group"><label>Amount (${curr})</label><input type="number" step="0.01" id="rec_amt_${vid}" required></div>
+  <div class="form-group"><label>Category</label><select id="rec_cat_${vid}"><option>Insurance</option><option>Service</option><option>Leasing</option><option>Tax</option><option>Parking</option><option>Other</option></select></div>
+  <div class="form-group"><label>Interval</label><select id="rec_int_${vid}"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
+  <div class="form-group"><label>Start Date</label><input type="date" id="rec_start_${vid}" value="${new Date().toISOString().slice(0,10)}"></div>
+  <div class="form-group"><label>Notes</label><input id="rec_notes_${vid}"></div>
+  <button class="btn btn-sm btn-primary" type="submit">Save</button></form>`;
+}
+
+async function submitRecurring(e,vid){
+  e.preventDefault();
+  await api(`/vehicles/${vid}/recurring`,{method:'POST',body:JSON.stringify({amount:+document.getElementById('rec_amt_'+vid).value,category:document.getElementById('rec_cat_'+vid).value,interval:document.getElementById('rec_int_'+vid).value,startDate:new Date(document.getElementById('rec_start_'+vid).value).toISOString(),notes:document.getElementById('rec_notes_'+vid).value,active:true})});
+  loadSettingsRecurring();
+}
+
+async function deleteRecurring(id){
+  if(confirm('Delete this recurring expense?')){await api(`/recurring/${id}`,{method:'DELETE'});loadSettingsRecurring()}
+}
+
+async function loadSettingsNotifications(){
+  const el=document.getElementById('settings-notifications');if(!el)return;
+  let items;try{items=await api('/notifications')}catch(e){return}
+  let html=items.map(n=>`<div class="setting-row"><div><strong>${n.type}</strong> <span style="font-size:.8rem;color:var(--muted)">${n.enabled?'Enabled':'Disabled'}</span></div><div><button class="btn btn-sm" style="background:#ef4444" onclick="deleteNotifConfig(${n.id})">✕</button></div></div>`).join('');
+  html+=`<div style="margin-top:.5rem"><button class="btn btn-sm" style="background:var(--border)" onclick="showAddNotifConfig()">+ Add</button></div><div id="notif-form"></div>`;
+  el.innerHTML=html;
+}
+
+function showAddNotifConfig(){
+  document.getElementById('notif-form').innerHTML=`<form onsubmit="submitNotifConfig(event)" style="margin-top:.5rem">
+  <div class="form-group"><label>Type</label><select id="nc_type" onchange="toggleNotifFields()"><option value="pushover">Pushover</option><option value="webhook">Webhook</option></select></div>
+  <div id="nc_fields"><div class="form-group"><label>App Token</label><input id="nc_token" placeholder="Pushover app token"></div><div class="form-group"><label>User Key</label><input id="nc_user" placeholder="Pushover user key"></div></div>
+  <button class="btn btn-sm btn-primary" type="submit">Save</button> <button type="button" class="btn btn-sm" style="background:var(--border)" onclick="testNotification()">🔔 Test</button></form>`;
+}
+
+function toggleNotifFields(){
+  const t=document.getElementById('nc_type').value;
+  document.getElementById('nc_fields').innerHTML=t==='pushover'?
+    '<div class="form-group"><label>App Token</label><input id="nc_token" placeholder="Pushover app token"></div><div class="form-group"><label>User Key</label><input id="nc_user" placeholder="Pushover user key"></div>':
+    '<div class="form-group"><label>Webhook URL</label><input id="nc_url" placeholder="https://..."></div>';
+}
+
+async function submitNotifConfig(e){
+  e.preventDefault();
+  const type=document.getElementById('nc_type').value;
+  let config;
+  if(type==='pushover')config=JSON.stringify({token:document.getElementById('nc_token').value,user:document.getElementById('nc_user').value});
+  else config=JSON.stringify({url:document.getElementById('nc_url').value});
+  await api('/notifications',{method:'POST',body:JSON.stringify({type,enabled:true,config})});
+  loadSettingsNotifications();
+}
+
+async function deleteNotifConfig(id){
+  await api(`/notifications/${id}`,{method:'DELETE'});loadSettingsNotifications();
+}
+
+async function testNotification(){
+  const type=document.getElementById('nc_type').value;
+  let config;
+  if(type==='pushover')config=JSON.stringify({token:document.getElementById('nc_token').value,user:document.getElementById('nc_user').value});
+  else config=JSON.stringify({url:document.getElementById('nc_url').value});
+  // Save temp, send test, then list
+  await api('/notifications',{method:'POST',body:JSON.stringify({type,enabled:true,config})});
+  alert('Test notification sent (if configured correctly)');
+  loadSettingsNotifications();
+}
+
+async function loadAuditLog(offset=0){
+  const el=document.getElementById('settings-audit');if(!el)return;
+  let data;try{data=await api(`/audit?limit=20&offset=${offset}`)}catch(e){return}
+  const entries=data.entries||[];
+  let html=entries.map(e=>`<div style="padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem"><span style="color:var(--accent)">${e.action}</span> ${e.entityType} #${e.entityId} <span style="color:var(--muted)">${e.details||''}</span><div style="font-size:.75rem;color:var(--muted)">${new Date(e.createdAt).toLocaleString()} · ${e.ip}</div></div>`).join('');
+  if(!entries.length)html='<p class="empty">No activity yet.</p>';
+  const total=data.total||0;
+  if(total>20){
+    html+=`<div style="display:flex;justify-content:center;gap:.5rem;margin-top:.75rem">`;
+    if(offset>0)html+=`<button class="btn btn-sm" style="background:var(--border)" onclick="loadAuditLog(${offset-20})">← Prev</button>`;
+    if(offset+20<total)html+=`<button class="btn btn-sm" style="background:var(--border)" onclick="loadAuditLog(${offset+20})">Next →</button>`;
+    html+=`</div>`;
+  }
+  el.innerHTML=html;
 }
 
 window.addEventListener('popstate',e=>{

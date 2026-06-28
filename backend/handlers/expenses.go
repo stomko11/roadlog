@@ -22,6 +22,7 @@ func CreateExpense(c *gin.Context) {
 	}
 	e.VehicleID = parseUint(c.Param("id"))
 	db.DB.Create(&e)
+	AuditLog(c, "create", "expense", e.ID, e.Category)
 	c.JSON(http.StatusCreated, e)
 }
 
@@ -40,10 +41,13 @@ func UpdateExpense(c *gin.Context) {
 		"date": input.Date, "amount": input.Amount, "category": input.Category, "notes": input.Notes,
 	})
 	db.DB.First(&e, e.ID)
+	AuditLog(c, "update", "expense", e.ID, e.Category)
 	c.JSON(http.StatusOK, e)
 }
 
 func DeleteExpense(c *gin.Context) {
-	db.DB.Delete(&models.Expense{}, c.Param("id"))
+	id := parseUint(c.Param("id"))
+	db.DB.Delete(&models.Expense{}, id)
+	AuditLog(c, "delete", "expense", id, "")
 	c.Status(http.StatusNoContent)
 }

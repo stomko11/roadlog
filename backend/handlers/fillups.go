@@ -25,11 +25,14 @@ func CreateFillup(c *gin.Context) {
 		f.TotalCost = f.FuelAmount * f.PricePerUnit
 	}
 	db.DB.Create(&f)
+	AuditLog(c, "create", "fillup", f.ID, f.Station)
 	c.JSON(http.StatusCreated, f)
 }
 
 func DeleteFillup(c *gin.Context) {
-	db.DB.Delete(&models.Fillup{}, c.Param("id"))
+	id := parseUint(c.Param("id"))
+	db.DB.Delete(&models.Fillup{}, id)
+	AuditLog(c, "delete", "fillup", id, "")
 	c.Status(http.StatusNoContent)
 }
 
@@ -50,6 +53,7 @@ func UpdateFillup(c *gin.Context) {
 		"station": input.Station, "full_tank": input.FullTank, "missed_previous": input.MissedPrevious, "notes": input.Notes,
 	})
 	db.DB.First(&f, f.ID)
+	AuditLog(c, "update", "fillup", f.ID, f.Station)
 	c.JSON(http.StatusOK, f)
 }
 

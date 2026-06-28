@@ -25,6 +25,7 @@ func CreateVehicle(c *gin.Context) {
 		return
 	}
 	db.DB.Create(&v)
+	AuditLog(c, "create", "vehicle", v.ID, v.Name)
 	c.JSON(http.StatusCreated, v)
 }
 
@@ -38,7 +39,9 @@ func GetVehicle(c *gin.Context) {
 }
 
 func DeleteVehicle(c *gin.Context) {
-	db.DB.Delete(&models.Vehicle{}, c.Param("id"))
+	id := parseUint(c.Param("id"))
+	db.DB.Delete(&models.Vehicle{}, id)
+	AuditLog(c, "delete", "vehicle", id, "")
 	c.Status(http.StatusNoContent)
 }
 
@@ -65,5 +68,6 @@ func UpdateVehicle(c *gin.Context) {
 	}
 	db.DB.Model(&v).Updates(updates)
 	db.DB.First(&v, v.ID)
+	AuditLog(c, "update", "vehicle", v.ID, v.Name)
 	c.JSON(http.StatusOK, v)
 }

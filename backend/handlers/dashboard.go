@@ -30,6 +30,7 @@ type DashboardResponse struct {
 	TotalSpent     float64          `json:"totalSpent"`
 	FuelSpent      float64          `json:"fuelSpent"`
 	ExpenseSpent   float64          `json:"expenseSpent"`
+	RecurringSpent float64          `json:"recurringSpent"`
 	TotalDistance  float64          `json:"totalDistance"`
 	Monthly        []MonthSummary   `json:"monthly"`
 	PerVehicle     []VehicleMonthly `json:"perVehicle"`
@@ -107,6 +108,27 @@ func GetDashboard(c *gin.Context) {
 		}
 		monthly[key].TotalSpent += e.Amount
 		monthly[key].ExpenseSpent += e.Amount
+	}
+
+	// Pro-rate recurring expenses into monthly totals
+	var recurring []models.RecurringExpense
+	db.DB.Where("vehicle_id IN ? AND active = ?", statsVehicleIDs, true).Find(&recurring)
+	for _, r := range recurring {
+		monthlyAmount := r.Amount
+		switch r.Interval {
+		case "quarterly":
+			monthlyAmount = r.Amount / 3
+		case "yearly":
+			monthlyAmount = r.Amount / 12
+		}
+		// Add to each month in the displayed range
+		for key, m := range monthly {
+			m.TotalSpent += monthlyAmount
+			m.ExpenseSpent += monthlyAmount
+			monthly[key] = m
+		}
+		d.TotalSpent += monthlyAmount * float64(len(monthly))
+		d.RecurringSpent += monthlyAmount * float64(len(monthly))
 	}
 
 	for _, m := range monthly {
