@@ -57,8 +57,6 @@ func UpdateFillup(c *gin.Context) {
 // Respects global settings for which fields to pre-fill.
 func GetFillupPrefill(c *gin.Context) {
 	vehicleID := c.Param("id")
-	var last models.Fillup
-	result := db.DB.Where("vehicle_id = ?", vehicleID).Order("date desc").First(&last)
 
 	// Load settings
 	settings := map[string]bool{"prefill_price": true, "prefill_station": true, "prefill_odometer": true}
@@ -69,17 +67,25 @@ func GetFillupPrefill(c *gin.Context) {
 	}
 
 	prefill := models.FillupPrefill{}
-	if result.Error == nil {
+
+	// Odometer: use the most recent fillup (including EVCC)
+	var latest models.Fillup
+	if db.DB.Where("vehicle_id = ?", vehicleID).Order("date desc").First(&latest).Error == nil {
 		if settings["prefill_odometer"] {
-			prefill.Odometer = &last.Odometer
+			prefill.Odometer = &latest.Odometer
 		}
+	}
+
+	// Price and station: skip EVCC entries
+	var lastManual models.Fillup
+	if db.DB.Where("vehicle_id = ? AND (notes NOT LIKE 'evcc#%' OR notes IS NULL OR notes = '')", vehicleID).Order("date desc").First(&lastManual).Error == nil {
 		if settings["prefill_price"] {
-			prefill.PricePerUnit = &last.PricePerUnit
+			prefill.PricePerUnit = &lastManual.PricePerUnit
 		}
-		if settings["prefill_station"] && last.Station != "" {
-			prefill.Station = &last.Station
+		if settings["prefill_station"] && lastManual.Station != "" {
+			prefill.Station = &lastManual.Station
 		}
-		prefill.FullTank = &last.FullTank
+		prefill.FullTank = &lastManual.FullTank
 	}
 	c.JSON(http.StatusOK, prefill)
 }
