@@ -157,20 +157,6 @@ function getPeriodRange(period){
   return null;
 }
 
-async function loadVehicleComparison(range){
-  const el=document.getElementById('vehicle-comparison');
-  if(!el)return;
-  const results=[];
-  const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
-  for(const v of state.vehicles.filter(v=>v.showInStats!==false)){
-    const qp=range?`?from=${range.from}&to=${range.to}`:'';
-    const st=await api(`/vehicles/${v.id}/stats${qp}`);
-    results.push({name:v.name,spent:st.totalSpent,fillups:st.totalFillups,color:v.color});
-  }
-  const maxSpent=Math.max(...results.map(r=>r.spent),1);
-  el.innerHTML=`<div class="chart-section"><h3>Spending by Vehicle</h3>${results.map((r,i)=>`<div class="chart-row"><span class="chart-label">${r.name}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(r.spent/maxSpent*100).toFixed(0)}%;background:${r.color||colors[i%colors.length]}"></div></div><span class="chart-val">${curr}${r.spent.toFixed(0)}</span></div>`).join('')}</div>`;
-}
-
 function navBar(active){
   return `<div class="nav">
     <button class="${active==='dashboard'?'active':''}" onclick="state.page='dashboard';render()">Dashboard</button>
@@ -223,7 +209,7 @@ async function render(pushState=true){
       <div class="stat-card"><div class="value">${curr}${d.totalSpent.toFixed(2)}</div><div class="label">Within Period</div></div>
       <div class="stat-card"><div class="value">${curr}${allTime.totalSpent.toFixed(2)}</div><div class="label">Total</div></div>
     </div>
-    <div class="chart-section"><h3>Monthly Spending</h3>
+    <div class="chart-section"><h3>Spending Overview</h3>
     ${d.monthly.length?(()=>{
       // Generate full month range for display
       let months;
@@ -264,9 +250,7 @@ async function render(pushState=true){
       return '<div style="font-size:.75rem;margin-bottom:.5rem">'+legend+'</div><div style="display:flex;align-items:flex-end;gap:4px;padding:0 .25rem">'+bars+'</div><div class="vbar-labels">'+labels+'</div><div style="text-align:right;font-size:.8rem;color:var(--muted);margin-top:.5rem">Period total: '+curr+d.totalSpent.toFixed(2)+'</div>';
     })():'<p class="empty">No data for this period.</p>'}
     </div>
-    <div id="vehicle-comparison" style="padding-bottom:5rem"></div>
     <div class="fab-container" id="fab"><button class="fab" onclick="document.getElementById('fab').classList.toggle('open')">+</button><div class="fab-menu"><button class="fab-item" style="background:var(--accent)" onclick="quickAddExpense()">⛽ Fill-up</button><button class="fab-item" style="background:#10b981" onclick="quickAddOtherExpense()">🧾 Expense</button></div></div>`;
-    if(state.vehicles.length>1)loadVehicleComparison(range);
     loadDueSoon();
 
   } else if(state.page==='vehicles'){
@@ -484,6 +468,12 @@ async function render(pushState=true){
     </div>
 
     <div class="card" style="cursor:default;margin-top:1rem">
+      <h2 style="margin-bottom:.5rem">Automatic Backup</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Schedule backups to WebDAV (Nextcloud) or a local path</p>
+      <div id="settings-autobackup"></div>
+    </div>
+
+    <div class="card" style="cursor:default;margin-top:1rem">
       <h2 style="margin-bottom:.5rem">Appearance</h2>
       <div class="setting-row"><span>Theme</span><button class="toggle ${theme==='light'?'on':''}" onclick="toggleTheme()"></button><span style="font-size:.8rem;color:var(--muted)">${theme==='dark'?'Dark':'Light'}</span></div>
     </div>
@@ -499,8 +489,8 @@ async function render(pushState=true){
       <div id="settings-audit"></div>
     </div>
 
-    <p style="text-align:center;margin-top:1.5rem;font-size:.8rem;color:var(--muted)">Roadlog v0.8.1</p>`;
-    loadSettingsNotifications();loadAuditLog();
+    <p style="text-align:center;margin-top:1.5rem;font-size:.8rem;color:var(--muted)">Roadlog v0.9.0</p>`;
+    loadSettingsNotifications();loadAuditLog();loadAutoBackup();
   }
 }
 
@@ -1148,6 +1138,44 @@ async function testNotification(){
   if(type==='pushover')config=JSON.stringify({token:document.getElementById('nc_token').value,user:document.getElementById('nc_user').value});
   else config=JSON.stringify({url:document.getElementById('nc_url').value});
   try{await api('/notifications/test',{method:'POST',body:JSON.stringify({type,config})});alert('Test sent!')}catch(err){alert('Failed: '+err.message)}
+}
+
+async function loadAutoBackup(){
+  const el=document.getElementById('settings-autobackup');if(!el)return;
+  let cfg;try{cfg=await api('/autobackup')}catch(e){return}
+  const isWebdav=cfg.type==='webdav';
+  el.innerHTML=`<div class="setting-row"><span>Enable auto-backup</span><button class="toggle ${cfg.enabled?'on':''}" id="ab_toggle" onclick="this.classList.toggle('on');saveAutoBackup()"></button></div>
+  <div class="form-group" style="margin-top:.75rem"><label>Type</label><select id="ab_type" onchange="switchBackupType(this.value)"><option value="webdav" ${cfg.type==='webdav'?'selected':''}>WebDAV (Nextcloud)</option><option value="local" ${cfg.type==='local'?'selected':''}>Local Path</option></select></div>
+  ${cfg.type==='webdav'?`<div class="form-group"><label>WebDAV URL</label><input id="ab_url" value="${cfg.url||''}" placeholder="https://cloud.example.com/remote.php/dav/files/user/Backups/"></div>
+  <div class="form-group"><label>Username</label><input id="ab_user" value="${cfg.username||''}"></div>
+  <div class="form-group"><label>Password</label><input type="password" id="ab_pass" value="${cfg.password||''}"></div>`
+  :`<div class="form-group"><label>Path</label><input id="ab_path" value="${cfg.path||''}" placeholder="/backups/roadlog"></div>`}
+  <div class="form-group"><label>Schedule</label><select id="ab_sched"><option value="daily" ${cfg.schedule==='daily'?'selected':''}>Daily</option><option value="weekly" ${cfg.schedule==='weekly'?'selected':''}>Weekly</option></select></div>
+  <div class="form-group"><label>Keep last N backups</label><input type="number" id="ab_retain" value="${cfg.retain||7}" min="1"></div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
+    <button class="btn btn-sm btn-primary" onclick="saveAutoBackup()">Save</button>
+    <button class="btn btn-sm" style="background:var(--border)" onclick="triggerBackup()">Run Now</button>
+  </div>
+  ${cfg.lastRun?`<p style="font-size:.8rem;color:var(--muted);margin-top:.5rem">Last: ${new Date(cfg.lastRun).toLocaleString()} — ${cfg.lastStatus==='ok'?'✅ OK':'❌ '+cfg.lastStatus}</p>`:''}`;
+}
+
+async function switchBackupType(type_){
+  await api('/autobackup',{method:'PUT',body:JSON.stringify({type:type_})});
+  loadAutoBackup();
+}
+
+async function saveAutoBackup(){
+  const type_=document.getElementById('ab_type').value;
+  const body={enabled:document.getElementById('ab_toggle').classList.contains('on'),type:type_,schedule:document.getElementById('ab_sched').value,retain:+document.getElementById('ab_retain').value||7};
+  if(type_==='webdav'){body.url=document.getElementById('ab_url').value;body.username=document.getElementById('ab_user').value;body.password=document.getElementById('ab_pass').value}
+  else{body.path=document.getElementById('ab_path').value}
+  await api('/autobackup',{method:'PUT',body:JSON.stringify(body)});
+  loadAutoBackup();
+}
+
+async function triggerBackup(){
+  try{await api('/autobackup/trigger',{method:'POST'});alert('Backup completed!')}catch(e){alert('Backup failed: '+e.message)}
+  loadAutoBackup();
 }
 
 async function loadAuditLog(offset=0){

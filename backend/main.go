@@ -24,6 +24,7 @@ func main() {
 	db.Init()
 	handlers.RunEVCCScheduler()
 	handlers.RunReminderScheduler()
+	handlers.RunBackupScheduler()
 
 	r := gin.Default()
 	r.Use(cors.Default())
@@ -107,6 +108,10 @@ func main() {
 		auth.POST("/notifications/test", handlers.TestNotification)
 
 		auth.GET("/audit", handlers.GetAuditLog)
+
+		auth.GET("/autobackup", handlers.GetBackupConfig)
+		auth.PUT("/autobackup", handlers.UpdateBackupConfig)
+		auth.POST("/autobackup/trigger", handlers.TriggerBackupNow)
 	}
 
 	r.GET("/favicon.png", func(c *gin.Context) {

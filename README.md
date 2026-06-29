@@ -46,6 +46,48 @@ Automatically import EV charging sessions from [EVCC](https://evcc.io) with full
 
 **Multiple sources:** You can add multiple EVCC instances per vehicle (e.g. home + parents' house).
 
+## Automatic Backup
+
+Roadlog can automatically back up your data to **WebDAV (Nextcloud)** or a **local path** on a daily or weekly schedule.
+
+Configure in **Settings → Automatic Backup**.
+
+### WebDAV (Nextcloud) Setup
+
+1. In Nextcloud, create a folder for backups (e.g. `Backups/Roadlog`)
+2. Go to **Settings → Security → Devices & sessions**
+3. Enter a name (e.g. "Roadlog") and click **Create new app password**
+4. Copy the generated token
+
+In Roadlog settings:
+- **Type:** WebDAV (Nextcloud)
+- **URL:** `https://your-cloud.com/remote.php/dav/files/YOUR_USERNAME/Backups/Roadlog/`
+- **Username:** your Nextcloud username (found in Settings → Personal info)
+- **Password:** the app password token from step 3
+
+> 💡 Use an app password instead of your main password — it bypasses 2FA and can be revoked independently.
+
+### Local Path
+
+Set a directory path (e.g. `/backups/roadlog`). Mount a volume to that path in Docker:
+
+```yaml
+volumes:
+  - ./data:/data
+  - /mnt/nas/backups/roadlog:/backups/roadlog
+```
+
+Roadlog will write timestamped JSON backups and auto-clean old ones based on your retention setting.
+
+### Options
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Schedule | Daily or weekly | Daily |
+| Retain | Number of backups to keep | 7 |
+
+You can also click **Run Now** to trigger a backup manually.
+
 ## Quick Start
 
 ### Unraid

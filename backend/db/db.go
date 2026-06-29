@@ -23,7 +23,7 @@ func Init() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	DB.AutoMigrate(&models.User{}, &models.Vehicle{}, &models.Fillup{}, &models.Expense{}, &models.UserPreference{}, &models.Station{}, &models.VehicleEVCC{}, &models.Reminder{}, &models.NotificationConfig{}, &models.AuditEntry{})
+	DB.AutoMigrate(&models.User{}, &models.Vehicle{}, &models.Fillup{}, &models.Expense{}, &models.UserPreference{}, &models.Station{}, &models.VehicleEVCC{}, &models.Reminder{}, &models.NotificationConfig{}, &models.AuditEntry{}, &models.BackupConfig{})
 	seedAdmin()
 }
 

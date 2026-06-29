@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0 (2026-06-29)
+
+- Automatic backup to WebDAV (Nextcloud) or local path with daily/weekly schedule
+- Configurable retention (keep last N backups)
+- "Run Now" button for manual trigger
+- Rename dashboard chart from "Monthly Spending" to "Spending Overview"
+- Remove redundant "Spending by Vehicle" section (info already in stacked chart)
+
 ## v0.4.0 (2026-06-27)
 
 - Fix backup download (was failing with "file not available")

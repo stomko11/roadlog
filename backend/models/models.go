@@ -130,3 +130,17 @@ type AuditEntry struct {
 	IP         string    `json:"ip"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
+
+type BackupConfig struct {
+	ID         uint       `json:"id" gorm:"primaryKey"`
+	Enabled    bool       `json:"enabled"`
+	Type       string     `json:"type"`       // "webdav" or "local"
+	Schedule   string     `json:"schedule"`   // "daily" or "weekly"
+	Retain     int        `json:"retain"`     // number of backups to keep
+	URL        string     `json:"url"`        // WebDAV URL
+	Username   string     `json:"username"`
+	Password   string     `json:"password"`
+	Path       string     `json:"path"`       // local path
+	LastRun    *time.Time `json:"lastRun"`
+	LastStatus string     `json:"lastStatus"` // "ok" or error message
+}
