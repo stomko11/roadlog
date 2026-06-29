@@ -6,6 +6,15 @@
 
 A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expenses, and monitor consumption across all your vehicles.
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/dashboard.png" width="300" alt="Dashboard">
+  <img src="screenshots/vehicle-detail.png" width="300" alt="Vehicle Detail">
+  <img src="screenshots/fillup-form.png" width="300" alt="Fill-up Form">
+  <img src="screenshots/vehicles.png" width="300" alt="Vehicles">
+</p>
+
 ## Features
 
 - **Multi-vehicle support** — petrol, diesel, LPG, CNG, electric, hybrid, plugin hybrid
