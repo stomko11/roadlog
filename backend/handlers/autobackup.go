@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -35,14 +36,17 @@ func UpdateBackupConfig(c *gin.Context) {
 	var cfg models.BackupConfig
 	db.DB.FirstOrCreate(&cfg, models.BackupConfig{ID: 1})
 	db.DB.Model(&cfg).Updates(map[string]interface{}{
-		"enabled":  input.Enabled,
-		"type":     input.Type,
-		"schedule": input.Schedule,
-		"retain":   input.Retain,
-		"url":      input.URL,
-		"username": input.Username,
-		"password": input.Password,
-		"path":     input.Path,
+		"enabled":      input.Enabled,
+		"type":         input.Type,
+		"schedule":     input.Schedule,
+		"time":         input.Time,
+		"weekday":      input.Weekday,
+		"day_of_month": input.DayOfMonth,
+		"retain":       input.Retain,
+		"url":          input.URL,
+		"username":     input.Username,
+		"password":     input.Password,
+		"path":         input.Path,
 	})
 	db.DB.First(&cfg, 1)
 	c.JSON(http.StatusOK, cfg)
@@ -60,7 +64,7 @@ func TriggerBackupNow(c *gin.Context) {
 func RunBackupScheduler() {
 	go func() {
 		for {
-			time.Sleep(1 * time.Hour)
+			time.Sleep(1 * time.Minute)
 			var cfg models.BackupConfig
 			if err := db.DB.First(&cfg, 1).Error; err != nil || !cfg.Enabled {
 				continue
@@ -68,22 +72,56 @@ func RunBackupScheduler() {
 			if !shouldRun(cfg) {
 				continue
 			}
-			runAutoBackup()
+			log.Println("[backup] Starting scheduled backup...")
+			if err := runAutoBackup(); err != nil {
+				log.Printf("[backup] Failed: %v", err)
+			} else {
+				log.Println("[backup] Completed successfully")
+			}
 		}
 	}()
 }
 
 func shouldRun(cfg models.BackupConfig) bool {
-	if cfg.LastRun == nil {
-		return true
-	}
 	now := time.Now()
+
+	// Parse configured time (default 03:00)
+	hour, minute := 3, 0
+	if cfg.Time != "" {
+		fmt.Sscanf(cfg.Time, "%d:%d", &hour, &minute)
+	}
+
+	// Check if we're in the right minute window
+	if now.Hour() != hour || now.Minute() != minute {
+		return false
+	}
+
+	// Check day constraints for weekly/monthly
 	switch cfg.Schedule {
 	case "weekly":
-		return now.Sub(*cfg.LastRun) >= 7*24*time.Hour
-	default: // daily
-		return now.Sub(*cfg.LastRun) >= 24*time.Hour
+		if int(now.Weekday()) != cfg.Weekday {
+			return false
+		}
+	case "monthly":
+		day := cfg.DayOfMonth
+		if day == 0 {
+			day = 1
+		}
+		if now.Day() != day {
+			return false
+		}
 	}
+
+	// Don't run if we already ran today (prevents duplicate runs within the same minute)
+	if cfg.LastRun != nil {
+		lastDate := cfg.LastRun.Format("2006-01-02")
+		todayDate := now.Format("2006-01-02")
+		if lastDate == todayDate {
+			return false
+		}
+	}
+
+	return true
 }
 
 func runAutoBackup() error {
@@ -117,8 +155,10 @@ func runAutoBackup() error {
 	status := "ok"
 	if err != nil {
 		status = err.Error()
+		db.DB.Model(&cfg).Update("last_status", status)
+	} else {
+		db.DB.Model(&cfg).Updates(map[string]interface{}{"last_run": now, "last_status": status})
 	}
-	db.DB.Model(&cfg).Updates(map[string]interface{}{"last_run": now, "last_status": status})
 
 	if err == nil {
 		cleanOldBackups(cfg)

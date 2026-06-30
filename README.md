@@ -57,9 +57,15 @@ Automatically import EV charging sessions from [EVCC](https://evcc.io) with full
 
 ## Automatic Backup
 
-Roadlog can automatically back up your data to **WebDAV (Nextcloud)** or a **local path** on a daily or weekly schedule.
+Roadlog can automatically back up your data to **WebDAV (Nextcloud)** or a **local path** on a configurable schedule.
 
 Configure in **Settings → Automatic Backup**.
+
+### Schedule Options
+
+- **Daily** — runs at a specific time (default 03:00)
+- **Weekly** — runs on a chosen day of the week at a specific time
+- **Monthly** — runs on a chosen day of the month (1–28) at a specific time
 
 ### WebDAV (Nextcloud) Setup
 

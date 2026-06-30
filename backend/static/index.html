@@ -1150,7 +1150,10 @@ async function loadAutoBackup(){
   <div class="form-group"><label>Username</label><input id="ab_user" value="${cfg.username||''}"></div>
   <div class="form-group"><label>Password</label><input type="password" id="ab_pass" value="${cfg.password||''}"></div>`
   :`<div class="form-group"><label>Path</label><input id="ab_path" value="${cfg.path||''}" placeholder="/backups/roadlog"></div>`}
-  <div class="form-group"><label>Schedule</label><select id="ab_sched"><option value="daily" ${cfg.schedule==='daily'?'selected':''}>Daily</option><option value="weekly" ${cfg.schedule==='weekly'?'selected':''}>Weekly</option></select></div>
+  <div class="form-group"><label>Schedule</label><select id="ab_sched" onchange="saveAutoBackup()"><option value="daily" ${cfg.schedule==='daily'?'selected':''}>Daily</option><option value="weekly" ${cfg.schedule==='weekly'?'selected':''}>Weekly</option><option value="monthly" ${cfg.schedule==='monthly'?'selected':''}>Monthly</option></select></div>
+  <div class="form-group"><label>Time</label><input type="time" id="ab_time" value="${cfg.time||'03:00'}"></div>
+  ${cfg.schedule==='weekly'?`<div class="form-group"><label>Day of week</label><select id="ab_weekday"><option value="0" ${cfg.weekday===0?'selected':''}>Sunday</option><option value="1" ${cfg.weekday===1?'selected':''}>Monday</option><option value="2" ${cfg.weekday===2?'selected':''}>Tuesday</option><option value="3" ${cfg.weekday===3?'selected':''}>Wednesday</option><option value="4" ${cfg.weekday===4?'selected':''}>Thursday</option><option value="5" ${cfg.weekday===5?'selected':''}>Friday</option><option value="6" ${cfg.weekday===6?'selected':''}>Saturday</option></select></div>`:''}
+  ${cfg.schedule==='monthly'?`<div class="form-group"><label>Day of month</label><input type="number" id="ab_dom" value="${cfg.dayOfMonth||1}" min="1" max="28"></div>`:''}
   <div class="form-group"><label>Keep last N backups</label><input type="number" id="ab_retain" value="${cfg.retain||7}" min="1"></div>
   <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
     <button class="btn btn-sm btn-primary" onclick="saveAutoBackup()">Save</button>
@@ -1160,13 +1163,15 @@ async function loadAutoBackup(){
 }
 
 async function switchBackupType(type_){
-  await api('/autobackup',{method:'PUT',body:JSON.stringify({type:type_})});
-  loadAutoBackup();
+  saveAutoBackup();
 }
 
 async function saveAutoBackup(){
   const type_=document.getElementById('ab_type').value;
-  const body={enabled:document.getElementById('ab_toggle').classList.contains('on'),type:type_,schedule:document.getElementById('ab_sched').value,retain:+document.getElementById('ab_retain').value||7};
+  const sched=document.getElementById('ab_sched').value;
+  const body={enabled:document.getElementById('ab_toggle').classList.contains('on'),type:type_,schedule:sched,time:document.getElementById('ab_time').value||'03:00',retain:+document.getElementById('ab_retain').value||7};
+  if(sched==='weekly'){const wd=document.getElementById('ab_weekday');body.weekday=wd?+wd.value:1}
+  if(sched==='monthly'){const dm=document.getElementById('ab_dom');body.dayOfMonth=dm?+dm.value:1}
   if(type_==='webdav'){body.url=document.getElementById('ab_url').value;body.username=document.getElementById('ab_user').value;body.password=document.getElementById('ab_pass').value}
   else{body.path=document.getElementById('ab_path').value}
   await api('/autobackup',{method:'PUT',body:JSON.stringify(body)});

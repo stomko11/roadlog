@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.1 (2026-06-30)
+
+- Time-based backup scheduling: pick exact time for daily, day+time for weekly, day-of-month+time for monthly
+- Fix: backup failures no longer mark last_run as successful (prevents missed backups)
+- Add backup scheduler logging (visible in docker logs)
+
 ## v0.9.0 (2026-06-29)
 
 - Automatic backup to WebDAV (Nextcloud) or local path with daily/weekly schedule

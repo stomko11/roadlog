@@ -135,7 +135,10 @@ type BackupConfig struct {
 	ID         uint       `json:"id" gorm:"primaryKey"`
 	Enabled    bool       `json:"enabled"`
 	Type       string     `json:"type"`       // "webdav" or "local"
-	Schedule   string     `json:"schedule"`   // "daily" or "weekly"
+	Schedule   string     `json:"schedule"`   // "daily", "weekly", or "monthly"
+	Time       string     `json:"time"`       // HH:MM (24h format)
+	Weekday    int        `json:"weekday"`    // 0=Sunday, 1=Monday, ..., 6=Saturday (for weekly)
+	DayOfMonth int        `json:"dayOfMonth"` // 1-28 (for monthly)
 	Retain     int        `json:"retain"`     // number of backups to keep
 	URL        string     `json:"url"`        // WebDAV URL
 	Username   string     `json:"username"`
