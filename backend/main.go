@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var Version = "dev"
+
 //go:embed static/index.html
 var staticFS embed.FS
 
@@ -33,6 +35,9 @@ func main() {
 	{
 		api.POST("/register", handlers.RateLimitMiddleware(), handlers.Register)
 		api.POST("/login", handlers.RateLimitMiddleware(), handlers.Login)
+		api.GET("/version", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"version": Version})
+		})
 	}
 
 	auth := api.Group("/", handlers.AuthMiddleware())
