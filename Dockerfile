@@ -9,7 +9,7 @@ RUN CGO_ENABLED=1 go build -ldflags "-X main.Version=${VERSION}" -o roadlog .
 
 # --- Runtime ---
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/roadlog .
 RUN mkdir -p /data

@@ -83,7 +83,8 @@ func RunBackupScheduler() {
 }
 
 func shouldRun(cfg models.BackupConfig) bool {
-	now := time.Now()
+	loc := getTimezone()
+	now := time.Now().In(loc)
 
 	// Parse configured time (default 03:00)
 	hour, minute := 3, 0
@@ -114,7 +115,7 @@ func shouldRun(cfg models.BackupConfig) bool {
 
 	// Don't run if we already ran successfully today
 	if cfg.LastRun != nil {
-		lastDate := cfg.LastRun.Format("2006-01-02")
+		lastDate := cfg.LastRun.In(loc).Format("2006-01-02")
 		todayDate := now.Format("2006-01-02")
 		if lastDate == todayDate && cfg.LastStatus == "ok" {
 			return false
