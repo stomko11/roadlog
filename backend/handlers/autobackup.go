@@ -122,11 +122,11 @@ func shouldRun(cfg models.BackupConfig) bool {
 		}
 	}
 
-	// Don't run if we already ran successfully today
+	// Don't run if we already ran in this exact minute (prevents duplicate runs)
 	if cfg.LastRun != nil {
-		lastDate := cfg.LastRun.In(loc).Format("2006-01-02")
-		todayDate := now.Format("2006-01-02")
-		if lastDate == todayDate && cfg.LastStatus == "ok" {
+		lastMinute := cfg.LastRun.In(loc).Format("2006-01-02 15:04")
+		nowMinute := now.Format("2006-01-02 15:04")
+		if lastMinute == nowMinute {
 			return false
 		}
 	}
