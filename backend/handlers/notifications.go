@@ -119,9 +119,10 @@ func RunReminderScheduler() {
 }
 
 func getTimezone() *time.Location {
-	var pref models.UserPreference
-	if db.DB.Where("`key` = ?", "timezone").First(&pref).Error == nil && pref.Value != "" {
-		if loc, err := time.LoadLocation(pref.Value); err == nil {
+	var prefs []models.UserPreference
+	db.DB.Where("`key` = ?", "timezone").Limit(1).Find(&prefs)
+	if len(prefs) > 0 && prefs[0].Value != "" {
+		if loc, err := time.LoadLocation(prefs[0].Value); err == nil {
 			return loc
 		}
 	}
