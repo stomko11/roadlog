@@ -63,12 +63,21 @@ func TriggerBackupNow(c *gin.Context) {
 
 func RunBackupScheduler() {
 	go func() {
+		// Log on startup to confirm scheduler is active
+		log.Println("[backup] Scheduler started, checking every minute")
 		for {
 			time.Sleep(1 * time.Minute)
 			var cfg models.BackupConfig
-			if err := db.DB.First(&cfg, 1).Error; err != nil || !cfg.Enabled {
+			if err := db.DB.First(&cfg, 1).Error; err != nil {
 				continue
 			}
+			if !cfg.Enabled {
+				continue
+			}
+			loc := getTimezone()
+			now := time.Now().In(loc)
+			log.Printf("[backup] Check: now=%s configured=%s schedule=%s lastRun=%v lastStatus=%s",
+				now.Format("2006-01-02 15:04"), cfg.Time, cfg.Schedule, cfg.LastRun, cfg.LastStatus)
 			if !shouldRun(cfg) {
 				continue
 			}
