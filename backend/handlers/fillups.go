@@ -116,7 +116,18 @@ func GetVehicleStats(c *gin.Context) {
 	}
 
 	if len(fillups) > 1 {
-		stats.TotalDistance = fillups[len(fillups)-1].Odometer - fillups[0].Odometer
+		var firstOdo, lastOdo float64
+		for _, f := range fillups {
+			if f.Odometer > 0 {
+				if firstOdo == 0 {
+					firstOdo = f.Odometer
+				}
+				lastOdo = f.Odometer
+			}
+		}
+		if firstOdo > 0 && lastOdo > firstOdo {
+			stats.TotalDistance = lastOdo - firstOdo
+		}
 		var totalFuel float64
 		for i := 1; i < len(fillups); i++ {
 			totalFuel += fillups[i].FuelAmount

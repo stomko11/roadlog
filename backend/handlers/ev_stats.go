@@ -97,9 +97,20 @@ func GetEVStats(c *gin.Context) {
 		}
 	}
 
-	// Total distance (from all fillups, not just EVCC)
+	// Total distance (from all fillups, not just EVCC) — skip entries with 0 odometer
 	if len(allFillups) > 1 {
-		stats.TotalDistance = allFillups[len(allFillups)-1].Odometer - allFillups[0].Odometer
+		var firstOdo, lastOdo float64
+		for _, f := range allFillups {
+			if f.Odometer > 0 {
+				if firstOdo == 0 {
+					firstOdo = f.Odometer
+				}
+				lastOdo = f.Odometer
+			}
+		}
+		if firstOdo > 0 && lastOdo > firstOdo {
+			stats.TotalDistance = lastOdo - firstOdo
+		}
 	}
 
 	// Cost per km (all charging costs / total distance)
