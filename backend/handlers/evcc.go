@@ -184,10 +184,17 @@ func syncSource(src *models.VehicleEVCC, vehicleID uint) (int, error) {
 			continue
 		}
 		// Dedup: check if fillup with same date+vehicleId+notes containing session ID exists
-		evccNote := fmt.Sprintf("evcc#%d", s.ID)
+		evccNote := fmt.Sprintf("evcc#%d#%d", src.ID, s.ID)
 		var existing models.Fillup
 		if db.DB.Where("vehicle_id = ? AND notes LIKE ?", vehicleID, "%"+evccNote+"%").First(&existing).Error == nil {
 			continue
+		}
+		// Also check legacy format (without source ID) for backwards compatibility
+		legacyNote := fmt.Sprintf("evcc#%d", s.ID)
+		if src.ID <= 1 {
+			if db.DB.Where("vehicle_id = ? AND notes LIKE ?", vehicleID, "%"+legacyNote+"%").First(&existing).Error == nil {
+				continue
+			}
 		}
 
 		station := src.Label
