@@ -72,9 +72,9 @@ func GetFillupPrefill(c *gin.Context) {
 
 	prefill := models.FillupPrefill{}
 
-	// Odometer: use the most recent fillup (including EVCC)
+	// Odometer: use the most recent fillup with a known odometer (skip 0 values from e.g. EVCC)
 	var latest models.Fillup
-	if db.DB.Where("vehicle_id = ?", vehicleID).Order("date desc").First(&latest).Error == nil {
+	if db.DB.Where("vehicle_id = ? AND odometer > 0", vehicleID).Order("date desc").First(&latest).Error == nil {
 		if settings["prefill_odometer"] {
 			prefill.Odometer = &latest.Odometer
 		}
