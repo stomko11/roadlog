@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"roadlog/db"
 	"roadlog/models"
+	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,7 @@ type MonthSummary struct {
 	ExpenseSpent float64 `json:"expenseSpent"`
 	Fillups      int     `json:"fillups"`
 	Liters       float64 `json:"liters"`
+	Distance     float64 `json:"distance"`
 }
 
 type VehicleMonthly struct {
@@ -53,6 +55,11 @@ func GetDashboard(c *gin.Context) {
 
 	from := c.Query("from")
 	to := c.Query("to")
+	// Bucket by day for short periods (chart "Show days" toggle), else by month.
+	keyFmt := "2006-01"
+	if c.Query("bucket") == "day" {
+		keyFmt = "2006-01-02"
+	}
 
 	var fillups []models.Fillup
 	q := db.DB.Where("vehicle_id IN ?", statsVehicleIDs).Order("date desc")
@@ -70,7 +77,7 @@ func GetDashboard(c *gin.Context) {
 	for _, f := range fillups {
 		d.TotalSpent += f.TotalCost
 		d.FuelSpent += f.TotalCost
-		key := f.Date.Format("2006-01")
+		key := f.Date.Format(keyFmt)
 		if _, ok := monthly[key]; !ok {
 			monthly[key] = &MonthSummary{Month: key}
 		}
@@ -103,7 +110,7 @@ func GetDashboard(c *gin.Context) {
 	for _, e := range expenses {
 		d.TotalSpent += e.Amount
 		d.ExpenseSpent += e.Amount
-		key := e.Date.Format("2006-01")
+		key := e.Date.Format(keyFmt)
 		if _, ok := monthly[key]; !ok {
 			monthly[key] = &MonthSummary{Month: key}
 		}
@@ -136,7 +143,7 @@ func GetDashboard(c *gin.Context) {
 			if f.VehicleID != v.ID {
 				continue
 			}
-			key := f.Date.Format("2006-01")
+			key := f.Date.Format(keyFmt)
 			if _, ok := vMonthly[key]; !ok {
 				vMonthly[key] = &MonthSummary{Month: key}
 			}
@@ -148,12 +155,32 @@ func GetDashboard(c *gin.Context) {
 			if e.VehicleID != v.ID {
 				continue
 			}
-			key := e.Date.Format("2006-01")
+			key := e.Date.Format(keyFmt)
 			if _, ok := vMonthly[key]; !ok {
 				vMonthly[key] = &MonthSummary{Month: key}
 			}
 			vMonthly[key].TotalSpent += e.Amount
 			vMonthly[key].ExpenseSpent += e.Amount
+		}
+		// Per-month distance: attribute each consecutive odometer delta to the month of the later
+		// fill-up. Only consecutive fill-ups within the fetched (period-filtered) set are used, so
+		// the first month in a period is undercounted by one leg - same limitation as consumption.
+		var vf []models.Fillup
+		for _, f := range fillups {
+			if f.VehicleID == v.ID && f.Odometer > 0 {
+				vf = append(vf, f)
+			}
+		}
+		sort.Slice(vf, func(i, j int) bool { return vf[i].Date.Before(vf[j].Date) })
+		for i := 1; i < len(vf); i++ {
+			dist := vf[i].Odometer - vf[i-1].Odometer
+			if dist > 0 && dist < 100000 { // guard against odometer resets / bad data
+				key := vf[i].Date.Format(keyFmt)
+				if _, ok := vMonthly[key]; !ok {
+					vMonthly[key] = &MonthSummary{Month: key}
+				}
+				vMonthly[key].Distance += dist
+			}
 		}
 		for _, m := range vMonthly {
 			vm.Monthly = append(vm.Monthly, *m)

@@ -69,10 +69,11 @@ type Station struct {
 }
 
 type FillupPrefill struct {
-	Odometer     *float64 `json:"odometer"`
-	PricePerUnit *float64 `json:"pricePerUnit"`
-	Station      *string  `json:"station"`
-	FullTank     *bool    `json:"fullTank"`
+	Odometer      *float64           `json:"odometer"`
+	PricePerUnit  *float64           `json:"pricePerUnit"`
+	Station       *string            `json:"station"`
+	FullTank      *bool              `json:"fullTank"`
+	StationPrices map[string]float64 `json:"stationPrices"`
 }
 
 type VehicleEVCC struct {

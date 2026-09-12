@@ -99,6 +99,7 @@ func main() {
 		auth.POST("/expenses/:id/end", handlers.EndRecurringExpense)
 
 		auth.GET("/due-soon", handlers.GetDueSoon)
+		auth.GET("/history", handlers.GetHistory)
 
 		auth.GET("/vehicles/:id/reminders", handlers.GetReminders)
 		auth.POST("/vehicles/:id/reminders", handlers.CreateReminder)

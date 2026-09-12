@@ -21,16 +21,18 @@ A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expens
 - **Plugin Hybrid** — choose fuel or electric per fill-up
 - **EVCC integration** — auto-import home charging sessions with solar %, actual cost from dynamic tariffs, and savings vs grid
 - **Vehicle lifecycle** — mark vehicles as inactive (won't appear in new entries) or hide from stats
-- **Smart fill-up form** — pre-fills last odometer, price, station (configurable)
+- **Smart fill-up form** — pre-fills last odometer, price, and station (configurable), plus **per-station price memory** (remembers the last price you paid at each saved station)
 - **Saved stations** — per fuel type, with autocomplete suggestions
 - **Other expenses** — insurance, service, repair, tires, parking, tolls, etc.
-- **Dashboard** — monthly spending charts (per vehicle, color-coded), period filters, total distance driven
-- **Per-vehicle charts** — consumption trends, price trends
+- **Dashboard** — grouped per-vehicle bars (side-by-side comparison), Cost/Distance view, per-month or per-day buckets, cost-type breakdown (fuel/expense), clickable per-vehicle legend, and period filters
+- **History** — a single filterable log of all fill-ups and expenses across every vehicle: filter by type, car, station, period, price and volume
+- **Per-vehicle charts** — consumption and price trends, plus an EV solar/grid monthly charging chart, all with a month/day toggle
 - **Multi-user** — shared vehicles, user management
 - **CSV import** — with smart column mapping and auto-guess
-- **CSV export & full backup/restore**
-- **Dark/light theme**
-- **Configurable units** — currency (EUR, USD, GBP, CZK, PLN…), volume (L, gal), distance (km, mi)
+- **CSV export & full backup/restore**, plus scheduled auto-backup to WebDAV/local
+- **Responsive UI** — mobile layout or a desktop sidebar, with a manual view toggle
+- **Theme** — light, dark, or auto (follows the OS)
+- **Configurable units & formats** — currency (EUR, USD, GBP, CZK, PLN…), volume (L, gal), distance (km, mi), and date format (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD…)
 - **Single container** — Go backend + embedded frontend, SQLite database
 
 ## EVCC Integration

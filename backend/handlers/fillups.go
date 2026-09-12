@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"roadlog/db"
 	"roadlog/models"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -91,6 +92,31 @@ func GetFillupPrefill(c *gin.Context) {
 		}
 		prefill.FullTank = &lastManual.FullTank
 	}
+
+	// Per-station price memory: for each SAVED station, the price of the most recent (non-EVCC)
+	// fill-up this vehicle had there. Keyed by lower-cased station name so the frontend can match
+	// case-insensitively. Only saved stations are included - a random one-off free-text station is
+	// deliberately not remembered (owner's call: "probably a one-off, not worth saving").
+	saved := map[string]bool{}
+	var stations []models.Station
+	db.DB.Find(&stations)
+	for _, s := range stations {
+		saved[strings.ToLower(strings.TrimSpace(s.Name))] = true
+	}
+	prices := map[string]float64{}
+	var vFillups []models.Fillup
+	db.DB.Where("vehicle_id = ? AND station != '' AND (notes NOT LIKE 'evcc#%' OR notes IS NULL OR notes = '')", vehicleID).Order("date desc").Find(&vFillups)
+	for _, f := range vFillups {
+		key := strings.ToLower(strings.TrimSpace(f.Station))
+		if key == "" || !saved[key] {
+			continue
+		}
+		if _, seen := prices[key]; !seen { // first occurrence = most recent (ordered date desc)
+			prices[key] = f.PricePerUnit
+		}
+	}
+	prefill.StationPrices = prices
+
 	c.JSON(http.StatusOK, prefill)
 }
 

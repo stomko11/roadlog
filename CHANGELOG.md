@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.10.0 (2026-09-13)
+
+- **History page** — one filterable log of all fill-ups + expenses across all vehicles (filter by type, car, station, period, price, volume); rows are clickable to edit
+- **Dashboard redesign** — compact summary strip; grouped per-vehicle bars (side-by-side); Cost/Distance view toggle; per-month or per-day buckets; cost-type breakdown (fuel/expense); clickable legend to show/hide cars; per-bar value labels; chart options moved to a cog menu
+- **Per-station price memory** — the fill-up form pre-fills the last price paid at a chosen saved station (toggle in Settings)
+- **Per-vehicle charts** restyled to the same bucketed look, with a Month/Day toggle; EV monthly charging shows solar/grid split
+- **Responsive desktop layout** — left sidebar on wide screens, plus a manual Mobile/Desktop/Auto view toggle
+- **Theme** — light / dark / auto (follows OS); removed the separate Settings theme row
+- **Date format** setting (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, …); currency shown as a suffix (e.g. `12.34€`)
+- Collapsible Settings sections
+- Fixes: local-time (not UTC) in date/time inputs; correct period date ranges; contiguous month buckets (no gaps); merged-rule/EVCC station-name cleanups
+
 ## v0.9.1 (2026-06-30)
 
 - Time-based backup scheduling: pick exact time for daily, day+time for weekly, day-of-month+time for monthly

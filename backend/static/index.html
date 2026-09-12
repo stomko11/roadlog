@@ -8,12 +8,12 @@
 :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--accent:#3b82f6;--accent-hover:#2563eb}
 [data-theme="light"]{--bg:#f8fafc;--surface:#ffffff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--accent:#2563eb;--accent-hover:#1d4ed8}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .3s,color .3s}
+body{font-family:'Inter','Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;background:var(--bg);color:var(--text);line-height:1.55;transition:background .3s,color .3s}
 .container{max-width:600px;margin:0 auto;padding:1rem}
-h1{font-size:1.5rem;margin-bottom:1rem}h2{font-size:1.2rem;margin-bottom:.75rem}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:1rem;margin-bottom:.75rem;cursor:pointer;transition:border-color .2s,background .3s}
+h1{font-size:1.4rem;margin-bottom:1rem;letter-spacing:-.01em}h2{font-size:1.1rem;margin-bottom:.75rem;letter-spacing:-.01em}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:.45rem;padding:1rem;margin-bottom:.75rem;cursor:pointer;transition:border-color .2s,background .3s}
 .card:hover{border-color:var(--accent)}
-.btn{display:inline-block;padding:.6rem 1.2rem;border-radius:.5rem;border:none;font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:background .2s;color:white}
+.btn{display:inline-block;padding:.6rem 1.2rem;border-radius:.4rem;border:none;font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:background .2s;color:white}
 .btn-primary{background:var(--accent)}.btn-primary:hover{background:var(--accent-hover)}
 .btn-block{display:block;width:100%;text-align:center}
 .btn-sm{padding:.4rem .8rem;font-size:.8rem}
@@ -28,6 +28,56 @@ input[type="date"]{cursor:pointer}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:.75rem;text-align:center;transition:background .3s}
 .stat-card .value{font-size:1.3rem;font-weight:700;color:var(--accent)}.stat-card .label{font-size:.75rem;color:var(--muted)}
+/* Compact dashboard summary strip */
+.summary{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1rem 1.15rem;margin-bottom:1rem}
+.summary .hero{display:flex;flex-direction:column;gap:.15rem}
+.summary .hero .big{font-size:1.7rem;font-weight:700;line-height:1;color:var(--text);letter-spacing:-.02em}
+.summary .hero .sub{font-size:.72rem;color:var(--muted)}
+.summary .mini{display:flex;gap:1.25rem;margin-left:auto;flex-wrap:wrap}
+.summary .mini .m{display:flex;flex-direction:column;gap:.1rem;min-width:60px}
+.summary .mini .m .mv{font-size:1.05rem;font-weight:700}
+.summary .mini .m .ml{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.summary .mini .m .mv.fuel{color:#3b82f6}.summary .mini .m .mv.exp{color:#10b981}
+/* Chart card + grouped bars */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1rem 1.15rem;margin-bottom:1rem}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.85rem;flex-wrap:wrap}
+.chart-head h3{font-size:1rem}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--border);border-radius:.5rem;overflow:hidden}
+.seg button{background:none;border:none;color:var(--muted);padding:.3rem .7rem;font-size:.8rem;cursor:pointer;transition:all .2s}
+.seg button.on{background:var(--accent);color:#fff}
+.veh-legend{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem}
+.veh-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .55rem;background:var(--bg);border:1px solid var(--border);border-radius:.45rem;cursor:pointer;font-size:.78rem;transition:opacity .2s;user-select:none}
+.veh-chip.off{opacity:.4}
+.veh-chip.off strong{text-decoration:line-through}
+.veh-chip .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chart-bars{display:flex;align-items:flex-end;gap:.6rem;overflow-x:auto;padding-bottom:.25rem}
+.month-col{flex:1;min-width:46px;display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.bar-group{display:flex;align-items:flex-end;justify-content:center;gap:3px;width:100%;height:150px}
+.gbar{flex:1;max-width:24px;border-radius:5px 5px 0 0;transition:height .35s ease,opacity .2s;position:relative}
+.gbar:hover{opacity:.82}
+.gbar-val{position:absolute;bottom:calc(100% + 4px);left:50%;writing-mode:vertical-rl;transform:translateX(-50%) rotate(180deg);font-size:.56rem;color:var(--muted);white-space:nowrap;font-weight:600;pointer-events:none}
+.month-lbl{font-size:.68rem;color:var(--muted);white-space:nowrap}
+.chart-foot{text-align:right;font-size:.8rem;color:var(--muted);margin-top:.6rem}
+.chart-sub{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.6rem;min-height:1.9rem}
+.chart-ctrls{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;justify-content:flex-end}
+.cog-wrap{position:relative;display:inline-block}
+.cog-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:.4rem;padding:.28rem .5rem;cursor:pointer;font-size:.9rem;line-height:1}
+.cog-btn:hover{color:var(--text)}
+.cog-btn.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.cog-btn.active::after{content:'';position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#f59e0b;border:1px solid var(--surface)}
+.cog-wrap>.cog-btn{position:relative}
+.cog-menu{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:60;min-width:180px;background:var(--surface);border:1px solid var(--border);border-radius:.5rem;box-shadow:0 6px 20px rgba(0,0,0,.35);padding:.35rem}
+.cog-wrap.open .cog-menu{display:block}
+.cog-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:.35rem .5rem .2rem}
+.cog-opt{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:.4rem .5rem;border-radius:.35rem;cursor:pointer;font-size:.85rem}
+.cog-opt:hover{background:var(--bg)}
+.cog-opt.on{color:var(--accent);font-weight:600}
+.cog-sep{height:1px;background:var(--border);margin:.3rem 0}
+.seg.mini button{font-size:.72rem;padding:.22rem .5rem}
+.linkbtn{background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;padding:.2rem .3rem;border-radius:.3rem}
+.linkbtn:hover{color:var(--accent)}
+.bar-group{border-bottom:1px solid var(--border)}
+.gbar.zero{opacity:.22}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
 .back{color:var(--muted);text-decoration:none;font-size:.9rem;cursor:pointer;background:none;border:none}.back:hover{color:var(--text)}
 .empty{text-align:center;color:var(--muted);padding:2rem}
@@ -81,7 +131,40 @@ input[type="date"]{cursor:pointer}
 .vbar-labels{display:flex;gap:4px;padding:0 .25rem}
 .vbar-labels span{flex:1;min-width:20px;text-align:center;font-size:.65rem;color:var(--muted)}
 .bar-tip{position:relative;cursor:default}
-.bar-tip:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);border-radius:.3rem;padding:.25rem .5rem;font-size:.7rem;white-space:nowrap;z-index:10;pointer-events:none}
+/* Floating tooltip (never clipped by chart overflow) */
+#tip{position:fixed;display:none;background:var(--text);color:var(--bg);border-radius:.35rem;padding:.3rem .55rem;font-size:.72rem;white-space:nowrap;z-index:2000;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+/* Desktop layout: left sidebar nav + wider content. Applied when body has .vm-desktop, which JS
+   sets from the view-mode toggle (Auto follows width >=900px; Mobile/Desktop force it). */
+.nav-brand{display:none}
+body.vm-desktop .nav{position:fixed;left:0;top:0;bottom:0;width:190px;flex-direction:column;align-items:stretch;gap:.25rem;margin:0;padding:1rem .75rem;border-bottom:none;border-right:1px solid var(--border);background:var(--surface);overflow-y:auto;z-index:50}
+body.vm-desktop .nav-brand{display:block;font-size:1.15rem;font-weight:800;padding:.4rem .6rem 1rem}
+.nav-actions{margin-left:auto;display:inline-flex;gap:.4rem;align-items:center}
+body.vm-desktop .nav button{text-align:left;width:100%;padding:.55rem .7rem;font-size:.9rem}
+body.vm-desktop .nav-actions{margin-left:0;margin-top:auto;flex-direction:row}
+body.vm-desktop .nav-actions button{width:auto}
+body.vm-desktop .container{max-width:1080px}
+body.vm-desktop .container:has(> .nav){padding-left:calc(190px + 2.5rem);padding-right:2rem;max-width:1240px}
+body.vm-desktop .summary .hero .big{font-size:1.85rem}
+body.vm-desktop .bar-group{height:200px}
+body.vm-desktop .stats{grid-template-columns:repeat(4,1fr)}
+/* Collapsible settings sections */
+.card.sect>h2{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.card.sect>h2::after{content:'▸';color:var(--muted);font-size:.85rem;transition:transform .2s}
+.card.sect:not(.collapsed)>h2::after{transform:rotate(90deg)}
+.card.sect.collapsed>*:not(h2){display:none!important}
+.card.sect.collapsed>h2{margin-bottom:0!important}
+/* History filter bar + rows */
+.filter-bar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.filter-bar .fgrp{display:flex;flex-direction:column;gap:.2rem}
+.filter-bar .fgrp>label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.date-range{display:inline-flex;align-items:center;gap:.4rem;background:var(--bg);border:1px solid var(--border);border-radius:.5rem;padding:.15rem .5rem}
+.date-range input{border:none;background:none;color:var(--text);font-size:.85rem}
+.date-range span{color:var(--muted)}
+.cchip{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .55rem;background:var(--bg);border:1px solid var(--border);border-radius:.45rem;cursor:pointer;font-size:.78rem;user-select:none;transition:all .15s}
+.cchip.off{opacity:.4}
+.cchip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.hist-row{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;cursor:pointer}
+.hist-row:hover{border-color:var(--accent)}
 .fab-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:100;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:.5rem}
 .fab{width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;font-size:28px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:transform .2s}
 .fab-container.open .fab{transform:rotate(45deg)}
@@ -94,13 +177,54 @@ input[type="date"]{cursor:pointer}
 <div class="container" id="app"></div>
 <script>
 let token=localStorage.getItem('roadlog_token');
-let theme=localStorage.getItem('roadlog_theme')||'dark';
-document.documentElement.setAttribute('data-theme',theme);
+let theme=localStorage.getItem('roadlog_theme')||'auto';
+function effectiveTheme(){return theme==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):theme;}
+function applyTheme(){document.documentElement.setAttribute('data-theme',effectiveTheme());}
+function themeIcon(){return theme==='auto'?'🌗':theme==='light'?'☀️':'🌙';}
+function themeLabel(){return theme==='auto'?'Auto (follows system)':theme==='light'?'Light':'Dark';}
+applyTheme();
+// Live-update when the OS theme changes, but only while we're in 'auto' mode.
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(theme==='auto'){applyTheme();if(document.getElementById('app'))render();}});
+// View mode: auto (follow width), mobile, or desktop (forces the sidebar layout).
+let viewMode=localStorage.getItem('roadlog_viewmode')||'auto';
+function effectiveDesktop(){return viewMode==='desktop'||(viewMode==='auto'&&window.innerWidth>=900);}
+function applyViewMode(){document.body.classList.toggle('vm-desktop',effectiveDesktop());}
+function viewIcon(){return viewMode==='auto'?'🔄':viewMode==='mobile'?'📱':'🖥️';}
+function viewLabel(){return viewMode==='auto'?'Auto (by width)':viewMode==='mobile'?'Mobile':'Desktop';}
+function toggleViewMode(){viewMode=viewMode==='auto'?'mobile':viewMode==='mobile'?'desktop':'auto';localStorage.setItem('roadlog_viewmode',viewMode);applyViewMode();render();}
+applyViewMode();
+window.addEventListener('resize',()=>{if(viewMode==='auto'){const was=document.body.classList.contains('vm-desktop');applyViewMode();if(was!==document.body.classList.contains('vm-desktop')&&document.getElementById('app'))render();}});
 
 const currencies={EUR:'€',USD:'$',GBP:'£',CZK:'Kč',PLN:'zł',CHF:'CHF',SEK:'kr',NOK:'kr',DKK:'kr',HUF:'Ft'};
 let curr='€';
 let volUnit='L';
 let distUnit='km';
+let dateFmt='DD/MM/YYYY';
+const MONTHS_ABBR=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatDate(d){
+  const dt=(d instanceof Date)?d:new Date(d);
+  if(isNaN(dt.getTime()))return '';
+  const dd=String(dt.getDate()).padStart(2,'0'),mm=String(dt.getMonth()+1).padStart(2,'0'),yyyy=dt.getFullYear(),yy=String(yyyy).slice(-2),mon=MONTHS_ABBR[dt.getMonth()];
+  switch(dateFmt){
+    case 'MM/DD/YYYY':return mm+'/'+dd+'/'+yyyy;
+    case 'YYYY-MM-DD':return yyyy+'-'+mm+'-'+dd;
+    case 'DD-MM-YYYY':return dd+'-'+mm+'-'+yyyy;
+    case 'DD.MM.YYYY':return dd+'.'+mm+'.'+yyyy;
+    case 'DD MMM YYYY':return dd+' '+mon+' '+yyyy;
+    case 'DD/MM/YY':return dd+'/'+mm+'/'+yy;
+    default:return dd+'/'+mm+'/'+yyyy;
+  }
+}
+// Local "YYYY-MM-DDTHH:mm" for datetime-local inputs (browser-local, not UTC).
+function localDT(d){d=d?new Date(d):new Date();if(isNaN(d.getTime()))d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
+// Format a chart bucket key for tooltips: a full date (daily) honors the date-format setting; a
+// month key (YYYY-MM) shows "Mon YYYY".
+function formatBucket(key,daily){
+  if(!key)return '';
+  if(daily||key.length>7)return formatDate(key);
+  const y=key.slice(0,4),m=+key.slice(5,7);
+  return (MONTHS_ABBR[m-1]||'')+' '+y;
+}
 
 let state={page:token?'dashboard':'login',vehicles:[],vehicleId:null,fillups:[],stats:null,prefill:null,dashboard:null,settings:null,users:[]};
 
@@ -116,10 +240,90 @@ async function api(p,o={}){
 }
 
 function toggleTheme(){
-  theme=theme==='dark'?'light':'dark';
+  theme=theme==='auto'?'light':theme==='light'?'dark':'auto';
   localStorage.setItem('roadlog_theme',theme);
-  document.documentElement.setAttribute('data-theme',theme);
+  applyTheme();
   render();
+}
+function toggleDashVehicle(id){
+  if(!state.hiddenVehicles)state.hiddenVehicles=[];
+  const i=state.hiddenVehicles.indexOf(id);
+  if(i>=0)state.hiddenVehicles.splice(i,1);else state.hiddenVehicles.push(id);
+  render();
+}
+function resetDashFilters(){
+  state.hiddenVehicles=[];state.dashCostType='all';state.dashMetric='cost';
+  render();
+}
+function clearHistoryFilters(){
+  state.hfType='all';state.hfHiddenCars=[];state.hfHiddenStations=[];state.hfMinPrice='';state.hfMaxPrice='';state.hfFrom='';state.hfTo='';
+  render();
+}
+function toggleHistCar(id){
+  if(!state.hfHiddenCars)state.hfHiddenCars=[];
+  const i=state.hfHiddenCars.indexOf(id);
+  if(i>=0)state.hfHiddenCars.splice(i,1);else state.hfHiddenCars.push(id);
+  render();
+}
+function toggleHistStation(name){
+  if(!state.hfHiddenStations)state.hfHiddenStations=[];
+  const i=state.hfHiddenStations.indexOf(name);
+  if(i>=0)state.hfHiddenStations.splice(i,1);else state.hfHiddenStations.push(name);
+  render();
+}
+// Make each Settings section card collapsible (first one open, rest collapsed to keep the page compact).
+function wireSettingsCollapse(){
+  document.querySelectorAll('#app > .card').forEach((card,idx)=>{
+    const h=card.querySelector(':scope > h2');
+    if(!h)return;
+    card.classList.add('sect');
+    if(idx>0)card.classList.add('collapsed');
+    h.onclick=()=>card.classList.toggle('collapsed');
+  });
+}
+// Strip a trailing EVCC solar tag like " (☀️ 96%)" so all charges at one place group under one station.
+function baseStation(s){return (s||'').replace(/\s*\([^)]*☀[^)]*\)\s*$/u,'').trim();}
+async function histEditFillup(id,vehicleId){
+  state.vehicleId=vehicleId;
+  try{state.fillups=await api(`/vehicles/${vehicleId}/fillups`)}catch(e){return}
+  editFillup(id);
+}
+function renderHistoryList(){
+  const el=document.getElementById('hist-list');if(!el)return;
+  const items=state.history||[];
+  const f=state;
+  const hidden=f.hfHiddenCars||[];
+  const hStations=f.hfHiddenStations||[];
+  const filtered=items.filter(it=>{
+    if(f.hfType&&f.hfType!=='all'&&it.type!==f.hfType)return false;
+    if(hidden.includes(it.vehicleId))return false;
+    if(it.type==='fillup'&&hStations.includes(baseStation(it.station)))return false;
+    const day=(it.date||'').slice(0,10);
+    if(f.hfFrom&&day<f.hfFrom)return false;
+    if(f.hfTo&&day>f.hfTo)return false;
+    if(f.hfMinPrice!==''&&f.hfMinPrice!=null){if(it.type!=='fillup'||it.pricePerUnit<parseFloat(f.hfMinPrice))return false;}
+    if(f.hfMaxPrice!==''&&f.hfMaxPrice!=null){if(it.type!=='fillup'||it.pricePerUnit>parseFloat(f.hfMaxPrice))return false;}
+    return true;
+  });
+  const sum=filtered.reduce((s,it)=>s+(it.amount||0),0);
+  const sm=document.getElementById('hist-summary');
+  if(sm)sm.textContent=filtered.length+' entr'+(filtered.length===1?'y':'ies')+' · '+sum.toFixed(2)+curr;
+  if(!filtered.length){el.innerHTML='<p class="empty">No entries match these filters.</p>';return}
+  el.innerHTML=filtered.map(it=>{
+    const dot='<span style="width:10px;height:10px;border-radius:50%;background:'+(it.vehicleColor||'#3b82f6')+';display:inline-block;flex-shrink:0"></span>';
+    const day=formatDate(it.date);
+    const isFuel=it.type==='fillup';
+    const icon=isFuel?'⛽':'🧾';
+    const click=isFuel?('histEditFillup('+it.id+','+it.vehicleId+')'):('editExpense('+it.id+','+it.vehicleId+')');
+    const mid=isFuel
+      ?(it.station||'—')+' <span style="color:var(--muted);font-size:.8rem">· '+(it.fuelAmount||0).toFixed(1)+' @ '+curr+(it.pricePerUnit||0).toFixed(3)+'</span>'
+      :(it.category||'Expense')+(it.notes?' <span style="color:var(--muted);font-size:.8rem">· '+it.notes+'</span>':'');
+    return '<div class="card hist-row" onclick="'+click+'">'
+      +'<span style="font-size:1.1rem">'+icon+'</span>'
+      +'<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:.4rem">'+dot+'<strong style="font-size:.85rem">'+(it.vehicleName||'—')+'</strong><span style="color:var(--muted);font-size:.75rem">'+day+'</span></div>'
+      +'<div style="font-size:.85rem;margin-top:.15rem">'+mid+'</div></div>'
+      +'<div style="font-weight:700;white-space:nowrap">'+curr+(it.amount||0).toFixed(2)+'</div></div>';
+  }).join('');
 }
 
 function fuelUnit(fuelType,subType){
@@ -132,7 +336,7 @@ function fuelUnit(fuelType,subType){
 
 function getPeriodRange(period){
   const now=new Date();
-  const fmt=d=>d.toISOString().slice(0,10);
+  const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   if(period==='month'){
     return{from:fmt(new Date(now.getFullYear(),now.getMonth(),1)),to:fmt(now)};
   }
@@ -142,6 +346,12 @@ function getPeriodRange(period){
   if(period==='30days'){
     const d=new Date(now);d.setDate(d.getDate()-30);
     return{from:fmt(d),to:fmt(now)};
+  }
+  if(period==='last3months'){
+    return{from:fmt(new Date(now.getFullYear(),now.getMonth()-2,1)),to:fmt(now)};
+  }
+  if(period==='last6months'){
+    return{from:fmt(new Date(now.getFullYear(),now.getMonth()-5,1)),to:fmt(now)};
   }
   if(period==='year'){
     return{from:fmt(new Date(now.getFullYear(),0,1)),to:fmt(now)};
@@ -156,13 +366,49 @@ function getPeriodRange(period){
   }
   return null;
 }
+// Contiguous list of YYYY-MM keys from fromKey..toKey inclusive (so empty months aren't skipped).
+function monthRange(fromKey,toKey){
+  const out=[];if(!fromKey||!toKey)return out;
+  let y=+fromKey.slice(0,4),m=+fromKey.slice(5,7);const ty=+toKey.slice(0,4),tm=+toKey.slice(5,7);
+  while(y<ty||(y===ty&&m<=tm)){out.push(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++;}if(out.length>120)break;}
+  return out;
+}
+// Contiguous list of YYYY-MM-DD keys from fromDate..toDate inclusive (for the day view).
+function dayRange(fromDate,toDate){
+  const out=[];if(!fromDate||!toDate)return out;
+  let d=new Date(fromDate+'T00:00:00'),end=new Date(toDate+'T00:00:00'),n=0;
+  while(d<=end&&n<400){out.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));d.setDate(d.getDate()+1);n++;}
+  return out;
+}
+// Single-series bucketed bar chart (same discrete look as the dashboard). points: [{date, [valKey]}].
+// agg 'avg'|'sum'; fmtVal(v)->label string. daily=true buckets by day else month.
+function bucketChart(points,valKey,agg,color,fmtVal,from,to,daily){
+  if(!from||!to)return '<p class="empty">No data.</p>';
+  const groups={};
+  points.forEach(p=>{const val=p[valKey];if(!(val>0))return;const k=daily?p.date.slice(0,10):p.date.slice(0,7);if(!groups[k])groups[k]={sum:0,n:0};groups[k].sum+=val;groups[k].n++;});
+  const keys=daily?dayRange(from,to):monthRange(from.slice(0,7),to.slice(0,7));
+  const vals=keys.map(k=>{const g=groups[k];if(!g)return 0;return agg==='avg'?g.sum/g.n:g.sum;});
+  const max=Math.max.apply(null,vals.concat(0.0001));
+  const bars=keys.map((k,i)=>{
+    const v=vals[i],h=(v/max*72).toFixed(1);
+    const lbl=daily?(k.slice(8)+'/'+k.slice(5,7)):(k.slice(5)+'/'+k.slice(2,4));
+    const vl=v>0?fmtVal(v):'';
+    return '<div class="month-col"><div class="bar-group"><div class="gbar bar-tip'+(v>0?'':' zero')+'" style="height:'+h+'%;background:'+color+';min-height:'+(v>0?'3px':'2px')+'" data-tip="'+formatBucket(k,daily)+': '+(v>0?fmtVal(v):'—')+'">'+(vl?'<span class="gbar-val">'+vl+'</span>':'')+'</div></div><div class="month-lbl">'+lbl+'</div></div>';
+  }).join('');
+  return '<div class="chart-bars">'+bars+'</div>';
+}
 
 function navBar(active){
   return `<div class="nav">
+    <div class="nav-brand" onclick="state.page='dashboard';render()" style="cursor:pointer">🚗 Roadlog</div>
     <button class="${active==='dashboard'?'active':''}" onclick="state.page='dashboard';render()">Dashboard</button>
     <button class="${active==='vehicles'?'active':''}" onclick="state.page='vehicles';render()">Vehicles</button>
+    <button class="${active==='history'?'active':''}" onclick="state.page='history';render()">History</button>
     <button class="${active==='settings'?'active':''}" onclick="state.page='settings';render()">Settings</button>
-    <button style="margin-left:auto" onclick="toggleTheme()">${theme==='dark'?'☀️':'🌙'}</button>
+    <span class="nav-actions">
+      <button title="Theme: ${themeLabel()}" onclick="toggleTheme()">${themeIcon()}</button>
+      <button title="View: ${viewLabel()}" onclick="toggleViewMode()">${viewIcon()}</button>
+    </span>
     <button onclick="logout()" style="background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--muted)">Logout</button>
   </div>`;
 }
@@ -192,66 +438,124 @@ async function render(pushState=true){
     if(!state.customFrom)state.customFrom='';
     if(!state.customTo)state.customTo='';
     const range=getPeriodRange(state.period);
-    const qp=range?`?from=${range.from}&to=${range.to}`:'';
-    try{state.dashboard=await api('/dashboard'+qp);state.dashAll=await api('/dashboard');const st=await api('/settings');curr=currencies[st.currency]||st.currency;volUnit=st.volumeUnit||'L';distUnit=st.distanceUnit||'km';state.vehicles=await api('/vehicles')}catch(e){return}
+    const _spanDays=range?((new Date(range.to)-new Date(range.from))/86400000):999;
+    const canDay=range&&_spanDays<=62;
+    const daily=canDay&&state.dashDaily;
+    const qp=range?`?from=${range.from}&to=${range.to}${daily?'&bucket=day':''}`:'';
+    try{state.dashboard=await api('/dashboard'+qp);state.dashAll=await api('/dashboard');const st=await api('/settings');curr=currencies[st.currency]||st.currency;volUnit=st.volumeUnit||'L';distUnit=st.distanceUnit||'km';dateFmt=st.dateFormat||dateFmt;state.vehicles=await api('/vehicles')}catch(e){return}
     const d=state.dashboard;d.monthly=d.monthly||[];const allTime=state.dashAll;
-    const maxSpent=Math.max(...d.monthly.map(m=>m.totalSpent),1);
-    app.innerHTML=`${navBar('dashboard')}<div class="header"><h1>Dashboard</h1><select class="period-select" onchange="state.period=this.value;render()"><option value="month" ${state.period==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.period==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.period==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.period==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.period==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.period==='all'?'selected':''}>All Time</option><option value="custom" ${state.period==='custom'?'selected':''}>Custom...</option></select></div>
-    ${state.period==='custom'?`<div style="display:flex;gap:.5rem;margin-bottom:1rem"><input type="date" value="${state.customFrom}" onchange="state.customFrom=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"><input type="date" value="${state.customTo}" onchange="state.customTo=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"></div>`:''}
-    <div style="margin-bottom:1rem;display:flex;gap:.5rem"><button class="btn btn-primary" onclick="quickAddExpense()">+ Fill-up</button><button class="btn" style="background:#10b981" onclick="quickAddOtherExpense()">+ Expense</button></div>
-    <div id="due-soon-section"></div>
-    <div class="stats">
-      <div class="stat-card"><div class="value">${d.totalVehicles}</div><div class="label">Vehicles</div></div>
-      <div class="stat-card"><div class="value">${d.totalFillups}</div><div class="label">Fill-ups</div></div>
-      <div class="stat-card"><div class="value">${curr}${d.fuelSpent.toFixed(0)}</div><div class="label">Fuel</div></div>
-      <div class="stat-card"><div class="value">${curr}${d.expenseSpent.toFixed(0)}</div><div class="label">Expenses</div></div>
-      <div class="stat-card"><div class="value">${d.totalDistance?d.totalDistance.toFixed(0):'—'}</div><div class="label">${distUnit} driven</div></div>
-      <div class="stat-card"><div class="value">${curr}${d.totalSpent.toFixed(2)}</div><div class="label">Within Period</div></div>
-      <div class="stat-card"><div class="value">${curr}${allTime.totalSpent.toFixed(2)}</div><div class="label">Total</div></div>
+    const PERIODS=[['month','This Month'],['lastmonth','Last Month'],['30days','Last 30 Days'],['last3months','Last 3 Months'],['last6months','Last 6 Months'],['year','This Year'],['lastyear','Last Year'],['all','All Time'],['custom','Custom…']];
+    const periodLabel=(PERIODS.find(p=>p[0]===(state.period||'year'))||['','This Year'])[1];
+    const periodActive=state.period&&state.period!=='year';
+    const graphFilterActive=(state.dashMetric&&state.dashMetric!=='cost')||(state.dashCostType&&state.dashCostType!=='all')||(state.hiddenVehicles&&state.hiddenVehicles.length);
+    app.innerHTML=`${navBar('dashboard')}<div class="header"><h1>Dashboard</h1>
+      <div class="cog-wrap${state.openMenu==='period'?' open':''}">
+        <button class="cog-btn" title="Period" onclick="event.stopPropagation();state.openMenu=state.openMenu==='period'?null:'period';render()">${periodLabel} ▾</button>
+        <div class="cog-menu" style="min-width:170px">
+          <div class="cog-label">Period</div>
+          ${PERIODS.map(p=>`<button class="cog-opt ${state.period===p[0]?'on':''}" onclick="state.openMenu=null;state.period='${p[0]}';render()">${p[1]}</button>`).join('')}
+        </div>
+      </div>
     </div>
-    <div class="chart-section"><h3>Spending Overview</h3>
+    ${state.period==='custom'?`<div style="display:flex;gap:.5rem;margin-bottom:1rem"><input type="date" value="${state.customFrom}" onchange="state.customFrom=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"><input type="date" value="${state.customTo}" onchange="state.customTo=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"></div>`:''}
+    <div id="due-soon-section"></div>
+    <div class="summary">
+      <div class="hero"><div class="big">${d.totalSpent.toFixed(0)}${curr}</div><div class="sub">this period · all-time ${allTime.totalSpent.toFixed(0)}${curr}</div></div>
+      <div class="mini">
+        <div class="m"><div class="mv fuel">${d.fuelSpent.toFixed(0)}${curr}</div><div class="ml">Fuel</div></div>
+        <div class="m"><div class="mv exp">${d.expenseSpent.toFixed(0)}${curr}</div><div class="ml">Expenses</div></div>
+        <div class="m"><div class="mv">${d.totalDistance?d.totalDistance.toFixed(0):'—'}</div><div class="ml">${distUnit} driven</div></div>
+        <div class="m"><div class="mv">${d.totalFillups}</div><div class="ml">Fill-ups</div></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><h3>Spending Overview</h3>
+        <div class="cog-wrap${state.openMenu==='graph'?' open':''}">
+          <button class="cog-btn${graphFilterActive?' active':''}" title="Chart options" onclick="event.stopPropagation();state.openMenu=state.openMenu==='graph'?null:'graph';render()">⚙</button>
+          <div class="cog-menu">
+            <div class="cog-label">View</div>
+            <button class="cog-opt ${(state.dashMetric||'cost')==='cost'?'on':''}" onclick="event.stopPropagation();state.dashMetric='cost';render()">Cost</button>
+            <button class="cog-opt ${state.dashMetric==='distance'?'on':''}" onclick="event.stopPropagation();state.dashMetric='distance';render()">Distance</button>
+            ${(state.dashMetric||'cost')==='cost'?`<div class="cog-sep"></div><div class="cog-label">Cost breakdown</div><button class="cog-opt ${(state.dashCostType||'all')==='all'?'on':''}" onclick="event.stopPropagation();state.dashCostType='all';render()">All costs</button><button class="cog-opt ${state.dashCostType==='fuel'?'on':''}" onclick="event.stopPropagation();state.dashCostType='fuel';render()">Fuel only</button><button class="cog-opt ${state.dashCostType==='expense'?'on':''}" onclick="event.stopPropagation();state.dashCostType='expense';render()">Expenses only</button>`:''}
+            <div class="cog-sep"></div><div class="cog-label">Display</div>
+            <button class="cog-opt" onclick="event.stopPropagation();state.dashShowValues=(state.dashShowValues===false);render()">${state.dashShowValues!==false?'☑':'☐'} Show values on bars</button>
+            ${canDay?`<button class="cog-opt" onclick="event.stopPropagation();state.dashDaily=!state.dashDaily;render()">${state.dashDaily?'☑':'☐'} Show days</button>`:''}
+            ${graphFilterActive?`<div class="cog-sep"></div><button class="cog-opt" onclick="state.openMenu=null;resetDashFilters()">↺ Reset</button>`:''}
+          </div>
+        </div>
+      </div>
     ${d.monthly.length?(()=>{
-      // Generate full month range for display
+      // Contiguous buckets across the selected period (day or month) so empty ones aren't skipped.
       let months;
-      if(state.period==='year'){
-        // Show all months Jan-current
-        const now=new Date();months=[];
-        for(let m=0;m<=now.getMonth();m++){const key=now.getFullYear()+'-'+String(m+1).padStart(2,'0');months.push(d.monthly.find(x=>x.month===key)||{month:key,totalSpent:0,fillups:0})}
-      } else if(state.period==='all'||state.period==='custom'){
-        // Last 6 months max
-        months=[...d.monthly].reverse();if(months.length>6)months=months.slice(months.length-6);
+      if(daily){
+        months=dayRange(range.from,range.to).map(k=>({month:k}));
       } else {
-        months=[...d.monthly].reverse();
+        let fromKey,toKey;
+        if(range){fromKey=range.from.slice(0,7);toKey=range.to.slice(0,7);}
+        else{const ks=d.monthly.map(m=>m.month).sort();fromKey=ks[0];toKey=ks[ks.length-1];}
+        months=monthRange(fromKey,toKey).map(k=>({month:k}));
       }
-      const maxSpent=Math.max(...months.map(m=>m.totalSpent),1);
-      const pv=d.perVehicle||[];
       const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
-      const legend=pv.map((v,i)=>{const c=v.color||colors[i%colors.length];const fuel=(v.monthly||[]).reduce((s,m)=>s+(m.fuelSpent||0),0);const exp=(v.monthly||[]).reduce((s,m)=>s+(m.expenseSpent||0),0);return '<div style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;padding:.3rem .6rem;background:var(--surface);border:1px solid var(--border);border-radius:.4rem"><span style="width:10px;height:10px;border-radius:2px;background:'+c+'"></span><strong style="font-size:.8rem">'+v.vehicleName+'</strong> <span style="color:var(--muted);font-size:.7rem">⛽'+curr+fuel.toFixed(0)+' · 🧾'+curr+exp.toFixed(0)+'</span></div>'}).join('');
-      let bars='';
-      months.forEach(m=>{
-        const total=m.totalSpent;
-        let group='<div style="flex:1;min-width:30px;display:flex;flex-direction:column;align-items:center;gap:0">';
-        group+='<div style="font-size:.65rem;color:var(--muted);margin-bottom:2px">'+curr+total.toFixed(0)+'</div>';
-        group+='<div style="display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:120px">';
-        pv.forEach((v,i)=>{
+      const pv=d.perVehicle||[];
+      const hidden=state.hiddenVehicles||[];
+      const metric=state.dashMetric||'cost';
+      const costType=state.dashCostType||'all';
+      const visible=pv.filter(v=>!hidden.includes(v.vehicleId));
+      const valOf=vm=>{if(!vm)return 0;if(metric==='distance')return vm.distance||0;if(costType==='fuel')return vm.fuelSpent||0;if(costType==='expense')return vm.expenseSpent||0;return vm.totalSpent||0;};
+      let max=1;months.forEach(m=>visible.forEach(v=>{const vm=(v.monthly||[]).find(x=>x.month===m.month);const val=valOf(vm);if(val>max)max=val;}));
+      const legend=pv.map((v,i)=>{const c=v.color||colors[i%colors.length];const off=hidden.includes(v.vehicleId);const tot=(v.monthly||[]).reduce((s,m)=>s+valOf(m),0);const totTxt=metric==='cost'?tot.toFixed(0)+curr:tot.toFixed(0)+' '+distUnit;return '<div class="veh-chip '+(off?'off':'')+'" onclick="toggleDashVehicle('+v.vehicleId+')"><span class="dot" style="background:'+c+'"></span><strong>'+v.vehicleName+'</strong> <span style="color:var(--muted)">'+totTxt+'</span></div>';}).join('');
+      const barsHtml=months.map(m=>{
+        let g='';
+        // one slot per visible car every month (zero -> faint baseline stub) so groups stay aligned;
+        // bars capped at 72% so the rotated per-bar value label above them isn't clipped.
+        visible.forEach((v,i)=>{
           const c=v.color||colors[i%colors.length];
           const vm=(v.monthly||[]).find(x=>x.month===m.month);
-          const fuel=vm?(vm.fuelSpent||0):0;
-          const exp=vm?(vm.expenseSpent||0):0;
-          const hFuel=maxSpent>0?(fuel/maxSpent*100).toFixed(0):0;
-          const hExp=maxSpent>0?(exp/maxSpent*100).toFixed(0):0;
-          group+='<div class="bar-tip" style="width:100%;height:'+hFuel+'%;background:'+c+';min-height:'+(fuel>0?'2px':'0')+'" data-tip="'+v.vehicleName+' fuel: '+curr+fuel.toFixed(0)+'"></div>';
-          group+='<div class="bar-tip" style="width:100%;height:'+hExp+'%;background:'+c+';opacity:0.4;min-height:'+(exp>0?'2px':'0')+'" data-tip="'+v.vehicleName+' expenses: '+curr+exp.toFixed(0)+'"></div>';
+          const val=valOf(vm);
+          const h=(val/max*72).toFixed(1);
+          const cost=vm?(vm.totalSpent||0):0,km=vm?(vm.distance||0):0;
+          const tip=v.vehicleName+' · '+formatBucket(m.month,daily)+' · '+cost.toFixed(2)+curr+' · '+km.toFixed(1)+' '+distUnit;
+          const tiny=val>0&&Math.round(val)<1;
+          const valTxt=metric==='cost'?(tiny?'<1'+curr:Math.round(val)+curr):(tiny?'<1':String(Math.round(val)));
+          g+='<div class="gbar bar-tip'+(val>0?'':' zero')+'" style="height:'+h+'%;background:'+c+';min-height:'+(val>0?'3px':'2px')+'" data-tip="'+tip+'">'+(state.dashShowValues!==false?'<span class="gbar-val">'+valTxt+'</span>':'')+'</div>';
         });
-        group+='</div></div>';
-        bars+=group;
-      });
-      const labels=months.map(m=>'<span>'+m.month.slice(5)+'/'+m.month.slice(0,4)+'</span>').join('');
-      return '<div style="font-size:.75rem;margin-bottom:.5rem">'+legend+'</div><div style="display:flex;align-items:flex-end;gap:4px;padding:0 .25rem">'+bars+'</div><div class="vbar-labels">'+labels+'</div><div style="text-align:right;font-size:.8rem;color:var(--muted);margin-top:.5rem">Period total: '+curr+d.totalSpent.toFixed(2)+'</div>';
+        const lbl=daily?(m.month.slice(8)+'/'+m.month.slice(5,7)):(m.month.slice(5)+'/'+m.month.slice(2,4));
+        return '<div class="month-col"><div class="bar-group">'+(g||'<div style="width:1px"></div>')+'</div><div class="month-lbl">'+lbl+'</div></div>';
+      }).join('');
+      let footTotal=0;pv.forEach(v=>(v.monthly||[]).forEach(m=>footTotal+=valOf(m)));
+      const foot=metric==='cost'?('Period total: '+footTotal.toFixed(0)+curr):('Period distance: '+footTotal.toFixed(0)+' '+distUnit);
+      return '<div class="veh-legend">'+legend+'</div><div class="chart-bars">'+barsHtml+'</div><div class="chart-foot">'+foot+'</div>';
     })():'<p class="empty">No data for this period.</p>'}
     </div>
+    <div style="height:5rem"></div>
     <div class="fab-container" id="fab"><button class="fab" onclick="document.getElementById('fab').classList.toggle('open')">+</button><div class="fab-menu"><button class="fab-item" style="background:var(--accent)" onclick="quickAddExpense()">⛽ Fill-up</button><button class="fab-item" style="background:#10b981" onclick="quickAddOtherExpense()">🧾 Expense</button></div></div>`;
     loadDueSoon();
+    // open the chart scrolled to the most recent month (newest is on the right)
+    requestAnimationFrame(()=>{const cb=document.querySelector('.chart-bars');if(cb)cb.scrollLeft=cb.scrollWidth;});
+
+  } else if(state.page==='history'){
+    try{state.history=await api('/history');state.vehicles=await api('/vehicles');const st=await api('/settings');curr=currencies[st.currency]||st.currency;volUnit=st.volumeUnit||'L';distUnit=st.distanceUnit||'km';dateFmt=st.dateFormat||dateFmt}catch(e){return}
+    if(!state.hfHiddenCars)state.hfHiddenCars=[];
+    const stations=[...new Set((state.history||[]).filter(it=>it.type==='fillup'&&it.station).map(it=>baseStation(it.station)).filter(Boolean))].sort();
+    if(!state.hfHiddenStations)state.hfHiddenStations=[];
+    const ipStyle='padding:.4rem .5rem;border:1px solid var(--border);border-radius:.5rem;background:var(--bg);color:var(--text);font-size:.85rem';
+    const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
+    const carChips=state.vehicles.map((v,i)=>{const on=!state.hfHiddenCars.includes(v.id);return '<div class="cchip '+(on?'':'off')+'" onclick="toggleHistCar('+v.id+')"><span class="dot" style="background:'+(v.color||colors[i%colors.length])+'"></span>'+v.name+'</div>';}).join('');
+    const stationChips=stations.map(s=>{const on=!state.hfHiddenStations.includes(s);const sv=s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");return '<div class="cchip '+(on?'':'off')+'" onclick="toggleHistStation(\''+sv+'\')">'+s+'</div>';}).join('');
+    app.innerHTML=`${navBar('history')}<div class="header"><h1>History</h1></div>
+    <div class="card" style="cursor:default;padding:.85rem">
+      <div class="filter-bar">
+        <div class="fgrp"><label>Type</label><div class="seg"><button class="${(state.hfType||'all')==='all'?'on':''}" onclick="state.hfType='all';render()">All</button><button class="${state.hfType==='fillup'?'on':''}" onclick="state.hfType='fillup';render()">Fill-ups</button><button class="${state.hfType==='expense'?'on':''}" onclick="state.hfType='expense';render()">Expenses</button></div></div>
+        <div class="fgrp"><label>Price / unit</label><div style="display:flex;gap:.35rem"><input type="number" step="0.01" inputmode="decimal" placeholder="min" value="${state.hfMinPrice||''}" style="${ipStyle};width:72px" oninput="state.hfMinPrice=this.value;renderHistoryList()"><input type="number" step="0.01" inputmode="decimal" placeholder="max" value="${state.hfMaxPrice||''}" style="${ipStyle};width:72px" oninput="state.hfMaxPrice=this.value;renderHistoryList()"></div></div>
+        <div class="fgrp"><label>Date range</label><div class="date-range"><input type="date" value="${state.hfFrom||''}" onchange="state.hfFrom=this.value;renderHistoryList()"><span>→</span><input type="date" value="${state.hfTo||''}" onchange="state.hfTo=this.value;renderHistoryList()"></div></div>
+        <div class="fgrp" style="align-self:flex-end"><button class="btn btn-sm" style="background:var(--border)" onclick="clearHistoryFilters()">Clear all</button></div>
+      </div>
+      <div style="margin-top:.7rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-right:.2rem">Cars</span>${carChips}</div>
+      ${stations.length?`<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-right:.2rem">Stations</span>${stationChips}</div>`:''}
+    </div>
+    <div id="hist-summary" style="font-size:.8rem;color:var(--muted);margin:.25rem .25rem .75rem"></div>
+    <div id="hist-list"></div>`;
+    renderHistoryList();
 
   } else if(state.page==='vehicles'){
     try{state.vehicles=await api('/vehicles')}catch(e){return}
@@ -268,32 +572,38 @@ async function render(pushState=true){
     const consumption=chartData.filter(p=>p.consumption>0);
     const maxCons=Math.max(...consumption.map(p=>p.consumption),1);
     const maxPrice=Math.max(...chartData.map(p=>p.pricePerUnit),1);
+    const vspan=range?((new Date(range.to)-new Date(range.from))/86400000):999;
+    const canDayV=range&&vspan<=62;
+    const vDaily=canDayV&&state.vDaily;
+    const cFrom=range?range.from:(chartData[0]?chartData[0].date.slice(0,10):'');
+    const cTo=range?range.to:(chartData.length?chartData[chartData.length-1].date.slice(0,10):'');
     let expenses=[];try{expenses=await api(`/vehicles/${state.vehicleId}/expenses`)}catch(e){}
     const expTotal=expenses.filter(e=>(!e.recurring||e.nextDue!==e.date)&&(!range||e.date>=range.from&&e.date<=range.to+'T23:59:59Z')).reduce((s,e)=>s+e.amount,0);
     const expAllTotal=expenses.filter(e=>!e.recurring||e.nextDue!==e.date).reduce((s,e)=>s+e.amount,0);
-    app.innerHTML=`${navBar('')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><button class="btn btn-sm" style="background:var(--border)" onclick="editVehicle(${state.vehicleId})">✏️</button></div>
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><button class="back" onclick="state.page='vehicles';render()">← Back</button><button class="btn btn-sm" style="background:var(--border)" onclick="editVehicle(${state.vehicleId})">✏️</button></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem"><button class="btn btn-primary btn-sm" onclick="goFillup()">+ Fill-up</button><button class="btn btn-sm" style="background:#10b981" onclick="goExpense()">+ Expense</button><button class="btn btn-sm" style="background:var(--border)" onclick="syncEVCC(${state.vehicleId})">⚡ Sync EVCC</button><button class="btn btn-sm" style="background:var(--border)" onclick="startImportSelect(${state.vehicleId})">⬆ Import</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportCSV(${state.vehicleId})">⬇ Fuel CSV</button><button class="btn btn-sm" style="background:var(--border)" onclick="exportExpenseCSV(${state.vehicleId})">⬇ Expense CSV</button></div>
     <div class="header"><h2 style="margin:0">${vehicle.name}</h2><select class="period-select" onchange="state.vPeriod=this.value;render()"><option value="month" ${state.vPeriod==='month'?'selected':''}>This Month</option><option value="lastmonth" ${state.vPeriod==='lastmonth'?'selected':''}>Last Month</option><option value="30days" ${state.vPeriod==='30days'?'selected':''}>Last 30 Days</option><option value="year" ${state.vPeriod==='year'?'selected':''}>This Year</option><option value="lastyear" ${state.vPeriod==='lastyear'?'selected':''}>Last Year</option><option value="all" ${state.vPeriod==='all'?'selected':''}>All Time</option><option value="custom" ${state.vPeriod==='custom'?'selected':''}>Custom...</option></select></div>
     ${state.vPeriod==='custom'?`<div style="display:flex;gap:.5rem;margin-bottom:1rem"><input type="date" value="${state.vCustomFrom||''}" onchange="state.vCustomFrom=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"><input type="date" value="${state.vCustomTo||''}" onchange="state.vCustomTo=this.value;render()" style="flex:1;padding:.4rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text)"></div>`:''}
-    <div class="stats"><div class="stat-card"><div class="value">${s.totalFillups}</div><div class="label">Fill-ups</div></div><div class="stat-card"><div class="value">${curr}${(s.totalSpent+expTotal).toFixed(0)}</div><div class="label">Within Period</div></div><div class="stat-card"><div class="value">${curr}${(sAll.totalSpent+expAllTotal).toFixed(0)}</div><div class="label">Total</div></div><div class="stat-card"><div class="value">${s.avgConsumption.toFixed(1)}</div><div class="label">${u.consumption}</div></div><div class="stat-card"><div class="value">${s.totalDistance.toFixed(0)}</div><div class="label">${distUnit} driven</div></div></div>
+    <div class="stats"><div class="stat-card"><div class="value">${s.totalFillups}</div><div class="label">Fill-ups</div></div><div class="stat-card"><div class="value">${(s.totalSpent+expTotal).toFixed(0)}${curr}</div><div class="label">Within Period</div></div><div class="stat-card"><div class="value">${(sAll.totalSpent+expAllTotal).toFixed(0)}${curr}</div><div class="label">Total</div></div><div class="stat-card"><div class="value">${s.avgConsumption.toFixed(1)}</div><div class="label">${u.consumption}</div></div><div class="stat-card"><div class="value">${s.totalDistance.toFixed(0)}</div><div class="label">${distUnit} driven</div></div></div>
     ${(vehicle.fuelType==='Electric'||vehicle.fuelType==='Plugin Hybrid')?'<div id="ev-dashboard"></div>':''}
-    ${consumption.length>1?`<div class="chart-section"><h3>Consumption (${u.consumption})</h3>${consumption.map(p=>`<div class="chart-row"><span class="chart-label">${p.date.slice(5)}</span><div class="chart-bar"><div class="chart-bar-fill" style="width:${(p.consumption/maxCons*100).toFixed(0)}%;background:#10b981"></div></div><span class="chart-val">${p.consumption.toFixed(1)}</span></div>`).join('')}</div>`:''}
-    ${chartData.length>1?`<div class="chart-section"><h3>Price Trend (${curr}/${u.unit})</h3><div class="vbar-chart">${chartData.map(p=>`<div class="vbar bar-tip" style="height:${(p.pricePerUnit/maxPrice*100).toFixed(0)}%;background:#f59e0b" data-tip="${p.date.slice(5)}: ${curr}${p.pricePerUnit.toFixed(3)}"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)"><span>${chartData[0].date.slice(5)}</span><span>${chartData[chartData.length-1].date.slice(5)}</span></div></div>`:''}
-    <div style="display:flex;justify-content:space-between;align-items:center"><h2>Fill-up History</h2>${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${(()=>{const pg=state.fPage||1,ps=10,total=state.fillups.length,pages=Math.ceil(total/ps),items=state.fillups.slice((pg-1)*ps,pg*ps);return items.length?items.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${new Date(f.date).toLocaleDateString()}</strong><span style="color:var(--accent)">${curr}${f.totalCost.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} ${distUnit} · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${curr}${f.pricePerUnit.toFixed(3)}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'fPage'):''):'<p class="empty">No fill-ups yet.</p>'})()}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>{const icon=e.recurring?(e.recurringActive===false?'<span style="opacity:.4">🔁</span>':'🔁'):'🧾';const badge=e.recurring&&e.recurringActive!==false?` <span style="font-size:.7rem;background:var(--border);border-radius:.3rem;padding:.1rem .3rem">${e.interval} · next ${e.nextDue?new Date(e.nextDue).toLocaleDateString():''}</span>`:'';return`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${icon} ${new Date(e.date).toLocaleDateString()}${badge}</strong><span style="color:#10b981">${curr}${e.amount.toFixed(2)}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`}).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}
+    ${(consumption.length>1||chartData.length>1)&&canDayV?`<div style="display:flex;justify-content:flex-end;margin-bottom:.4rem"><div class="seg mini"><button class="${!vDaily?'on':''}" onclick="state.vDaily=false;render()">Month</button><button class="${vDaily?'on':''}" onclick="state.vDaily=true;render()">Day</button></div></div>`:''}
+    ${consumption.length>1?`<div class="chart-card"><div class="chart-head"><h3>Consumption (${u.consumption})</h3></div>${bucketChart(consumption,'consumption','avg','#10b981',v=>v.toFixed(1),cFrom,cTo,vDaily)}</div>`:''}
+    ${chartData.length>1?`<div class="chart-card"><div class="chart-head"><h3>Price Trend (${curr}/${u.unit})</h3></div>${bucketChart(chartData,'pricePerUnit','avg','#f59e0b',v=>v.toFixed(2)+curr,cFrom,cTo,vDaily)}</div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap"><h2>Fill-up History</h2><div style="display:flex;gap:.5rem;align-items:center">${(()=>{const sts=[...new Set(state.fillups.filter(f=>f.station).map(f=>baseStation(f.station)).filter(Boolean))].sort();return sts.length?'<select style="padding:.3rem .5rem;border:1px solid var(--border);border-radius:.5rem;background:var(--bg);color:var(--text);font-size:.8rem" onchange="state.fFilterStation=this.value;state.fPage=1;render()"><option value="">All stations</option>'+sts.map(s=>'<option value="'+s.replace(/"/g,'&quot;')+'" '+(state.fFilterStation===s?'selected':'')+'>'+s+'</option>').join('')+'</select>':''})()}${state.fillups.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'fillups\')">☑ Select</button>':''}</div></div><div id="bulk-fillups-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteFillups()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('fillups')">Cancel</button></div>${(()=>{const ff=state.fFilterStation?state.fillups.filter(f=>baseStation(f.station)===state.fFilterStation):state.fillups;const pg=state.fPage||1,ps=10,total=ff.length,pages=Math.ceil(total/ps),items=ff.slice((pg-1)*ps,pg*ps);return items.length?items.map(f=>`<div class="card" onclick="state.bulkMode==='fillups'?toggleCheck('bf_${f.id}'):editFillup(${f.id})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="bf_${f.id}" data-id="${f.id}" class="bulk-f" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${formatDate(f.date)}</strong><span style="color:var(--accent)">${f.totalCost.toFixed(2)}${curr}</span></div><div style="font-size:.85rem;color:var(--muted)">${f.odometer.toFixed(0)} ${distUnit} · ${f.fuelAmount.toFixed(1)}${u.unit} @ ${f.pricePerUnit.toFixed(3)}${curr}/${u.unit} · ${f.station||'—'}</div></div></div></div>`).join('')+(pages>1?paginator(pg,pages,'fPage'):''):'<p class="empty">No fill-ups yet.</p>'})()}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><h2>Expenses</h2>${expenses.length?'<button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect(\'expenses\')">☑ Select</button>':''}</div><div id="bulk-expenses-bar" style="display:none;margin-bottom:.5rem"><button class="btn btn-sm" style="background:#ef4444" onclick="bulkDeleteExpenses()">🗑 Delete Selected</button> <button class="btn btn-sm" style="background:var(--border)" onclick="toggleBulkSelect('expenses')">Cancel</button></div>${(()=>{const pg=state.ePage||1,ps=10,total=expenses.length,pages=Math.ceil(total/ps),items=expenses.slice((pg-1)*ps,pg*ps);return items.length?items.map(e=>{const icon=e.recurring?(e.recurringActive===false?'<span style="opacity:.4">🔁</span>':'🔁'):'🧾';const badge=e.recurring&&e.recurringActive!==false?` <span style="font-size:.7rem;background:var(--border);border-radius:.3rem;padding:.1rem .3rem">${e.interval} · next ${e.nextDue?formatDate(e.nextDue):''}</span>`:'';return`<div class="card" onclick="state.bulkMode==='expenses'?toggleCheck('be_${e.id}'):editExpense(${e.id},${state.vehicleId})"><div style="display:flex;align-items:center;gap:.5rem"><input type="checkbox" id="be_${e.id}" data-id="${e.id}" class="bulk-e" style="display:none" onclick="event.stopPropagation()"><div style="flex:1"><div style="display:flex;justify-content:space-between"><strong>${icon} ${formatDate(e.date)}${badge}</strong><span style="color:#10b981">${e.amount.toFixed(2)}${curr}</span></div><div style="font-size:.85rem;color:var(--muted)">${e.category} · ${e.notes||'—'}</div></div></div></div>`}).join('')+(pages>1?paginator(pg,pages,'ePage'):''):'<p class="empty">No expenses yet.</p>'})()}
     <div id="reminders-section"></div>`;
     if(vehicle.fuelType==='Electric'||vehicle.fuelType==='Plugin Hybrid')loadEVDashboard();
     loadRemindersSection();
 
   } else if(state.page==='fillup'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
-    try{state.prefill=await api(`/vehicles/${state.vehicleId}/fillups/prefill`)}catch(e){return}
+    try{state.prefill=await api(`/vehicles/${state.vehicleId}/fillups/prefill`);state.settings=await api('/settings')}catch(e){return}
     const p=state.prefill;
     const u=fuelUnit(vehicle.fuelType);
-    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Fill-up</h2></div>
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Fill-up</h2></div>
     <form onsubmit="submitFillup(event)">
     ${vehicle.fuelType==='Plugin Hybrid'?'<div class="form-group"><label>Type</label><div style="display:flex;gap:.5rem"><button type="button" class="btn btn-sm btn-primary" id="phev_fuel" onclick="switchPHEV(\'fuel\')">⛽ Fuel</button><button type="button" class="btn btn-sm" style="background:var(--border)" id="phev_elec" onclick="switchPHEV(\'electric\')">⚡ Electric</button></div><input type="hidden" id="f_phev_type" value="fuel"></div>':''}
-    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="f_date" required value="${new Date().toISOString().slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="f_date" required value="${localDT()}" onclick="this.showPicker()"></div>
     <div class="form-group"><label>Odometer (${distUnit})</label><input type="number" step="1" id="f_odo" required value="${p.odometer||''}" placeholder="Current reading">${p.odometer?'<div class="prefill-hint">Pre-filled: last was '+p.odometer+' '+distUnit+'</div>':''}</div>
     <div class="form-group"><label>Amount (${u.unit})</label><input type="text" inputmode="decimal" id="f_fuel" required placeholder="${u.amountLabel}" oninput="calcTotal()"></div>
     <div class="form-group"><label>Price per ${u.unit} (${curr})</label><input type="text" inputmode="decimal" id="f_price" required value="${p.pricePerUnit||''}" placeholder="e.g. ${u.pricePlaceholder}" oninput="calcTotal()">${p.pricePerUnit?'<div class="prefill-hint">Pre-filled from last entry</div>':''}</div>
@@ -307,9 +617,9 @@ async function render(pushState=true){
   } else if(state.page==='editFillup'){
     let vehicle;try{vehicle=await api(`/vehicles/${state.vehicleId}`)}catch(e){return}
     const f=state.editingFillup;const u=fuelUnit(vehicle.fuelType);
-    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Fill-up</h2></div>
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Fill-up</h2></div>
     <form onsubmit="submitEditFillup(event)">
-    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ef_date" required value="${f.date.slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ef_date" required value="${localDT(f.date)}" onclick="this.showPicker()"></div>
     <div class="form-group"><label>Odometer (${distUnit})</label><input type="number" step="1" id="ef_odo" required value="${f.odometer}"></div>
     <div class="form-group"><label>Amount (${u.unit})</label><input type="text" inputmode="decimal" id="ef_fuel" required value="${f.fuelAmount}"></div>
     <div class="form-group"><label>Price per ${u.unit} (${curr})</label><input type="text" inputmode="decimal" id="ef_price" required value="${f.pricePerUnit}"></div>
@@ -324,9 +634,9 @@ async function render(pushState=true){
 
   } else if(state.page==='addExpense'){
     const ef=state.exForm||{};
-    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Expense</h2></div>
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>New Expense</h2></div>
     <form onsubmit="submitExpense(event)">
-    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ex_date" required value="${ef.date||new Date().toISOString().slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="ex_date" required value="${ef.date||localDT()}" onclick="this.showPicker()"></div>
     <div class="form-group"><label>Amount (${curr})</label><input type="text" inputmode="decimal" id="ex_amount" required value="${ef.amount||''}" placeholder="e.g. 45.00"></div>
     <div class="form-group"><label>Category</label><select id="ex_cat">${['Insurance','Service','Repair','Tires','Car Wash','Parking','Tolls','Tax','Other'].map(c=>`<option ${c===(ef.cat||'')?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="form-group"><label>Notes</label><input id="ex_notes" value="${ef.notes||''}" placeholder="Optional"></div>
@@ -339,9 +649,9 @@ async function render(pushState=true){
 
   } else if(state.page==='editExpense'){
     const e=state.editingExpense;
-    app.innerHTML=`<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Expense</h2></div>
+    app.innerHTML=`${navBar('vehicles')}<div class="header"><button class="back" onclick="openVehicle(${state.vehicleId})">← Cancel</button><h2>Edit Expense</h2></div>
     <form onsubmit="submitEditExpense(event)">
-    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="eex_date" required value="${e.date.slice(0,16)}" onclick="this.showPicker()"></div>
+    <div class="form-group"><label>Date & Time</label><input type="datetime-local" id="eex_date" required value="${localDT(e.date)}" onclick="this.showPicker()"></div>
     <div class="form-group"><label>Amount (${curr})</label><input type="text" inputmode="decimal" id="eex_amount" required value="${e.amount}"></div>
     <div class="form-group"><label>Category</label><select id="eex_cat">${['Insurance','Service','Repair','Tires','Car Wash','Parking','Tolls','Tax','Other'].map(c=>`<option ${c===e.category?'selected':''}>${c}</option>`).join('')}</select></div>
     <div class="form-group"><label>Notes</label><input id="eex_notes" value="${e.notes||''}"></div>
@@ -424,6 +734,7 @@ async function render(pushState=true){
 
   } else if(state.page==='settings'){
     try{state.settings=await api('/settings');state.users=await api('/users');state.allStations=await api('/stations')}catch(e){return}
+    dateFmt=state.settings.dateFormat||dateFmt;
     const s=state.settings;
     const fuelTypes=[...new Set(state.allStations.map(s=>s.fuelType))].sort();
     app.innerHTML=`${navBar('settings')}<h1>Settings</h1>
@@ -433,9 +744,11 @@ async function render(pushState=true){
       <div class="setting-row"><span>Pre-fill odometer</span><button class="toggle ${s.prefillOdometer?'on':''}" onclick="toggleSetting('prefillOdometer')"></button></div>
       <div class="setting-row"><span>Pre-fill price</span><button class="toggle ${s.prefillPrice?'on':''}" onclick="toggleSetting('prefillPrice')"></button></div>
       <div class="setting-row"><span>Pre-fill station</span><button class="toggle ${s.prefillStation?'on':''}" onclick="toggleSetting('prefillStation')"></button></div>
+      <div class="setting-row"><span>Remember price per station<br><span style="font-size:.75rem;color:var(--muted)">Pick a saved station → price fills from your last fill-up there</span></span><button class="toggle ${s.prefillPricePerStation?'on':''}" onclick="toggleSetting('prefillPricePerStation')"></button></div>
       <div class="setting-row"><span>Currency</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeCurrency(this.value)">${Object.entries(currencies).map(([k,v])=>'<option value="'+k+'" '+(k===s.currency?'selected':'')+'>'+v+' ('+k+')</option>').join('')}</select></div>
       <div class="setting-row"><span>Volume unit</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeVolumeUnit(this.value)"><option value="L" ${(s.volumeUnit||'L')==='L'?'selected':''}>Liters (L)</option><option value="gal" ${s.volumeUnit==='gal'?'selected':''}>Gallons (gal)</option></select></div>
       <div class="setting-row"><span>Distance unit</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeDistanceUnit(this.value)"><option value="km" ${(s.distanceUnit||'km')==='km'?'selected':''}>Kilometers (km)</option><option value="mi" ${s.distanceUnit==='mi'?'selected':''}>Miles (mi)</option></select></div>
+      <div class="setting-row"><span>Date format</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeDateFormat(this.value)">${['DD/MM/YYYY','DD/MM/YY','MM/DD/YYYY','YYYY-MM-DD','DD-MM-YYYY','DD.MM.YYYY','DD MMM YYYY'].map(fo=>{const sv=dateFmt;dateFmt=fo;const ex=formatDate(new Date());dateFmt=sv;return '<option value="'+fo+'" '+((s.dateFormat||'DD/MM/YYYY')===fo?'selected':'')+'>'+fo+' — '+ex+'</option>';}).join('')}</select></div>
       <div class="setting-row"><span>Timezone</span><select style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:.4rem;padding:.3rem .5rem" onchange="changeTZ(this.value)">${['','Europe/Bratislava','Europe/Prague','Europe/Berlin','Europe/Vienna','Europe/Warsaw','Europe/Budapest','Europe/London','Europe/Paris','Europe/Rome','Europe/Madrid','Europe/Amsterdam','Europe/Brussels','Europe/Zurich','Europe/Stockholm','Europe/Oslo','Europe/Helsinki','Europe/Athens','Europe/Istanbul','US/Eastern','US/Central','US/Mountain','US/Pacific','Asia/Tokyo','Asia/Shanghai','Australia/Sydney'].map(tz=>'<option value="'+tz+'" '+(tz===(s.timezone||'')?'selected':'')+'>'+(tz||'Auto (server local)')+'</option>').join('')}</select></div>
     </div>
 
@@ -458,24 +771,14 @@ async function render(pushState=true){
     </div>
 
     <div class="card" style="cursor:default;margin-top:1rem">
-      <h2 style="margin-bottom:.5rem">Backup & Restore</h2>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Download a full backup or restore from a previous export</p>
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <h2 style="margin-bottom:.5rem">Backup</h2>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Download a full backup, restore from a file, or schedule automatic backups</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
         <a class="btn btn-primary btn-sm" href="#" onclick="downloadBackup(event)">⬇ Download Backup</a>
         <button class="btn btn-sm" style="background:var(--border)" onclick="document.getElementById('restoreFile').click()">⬆ Restore from File</button>
         <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(this)">
       </div>
-    </div>
-
-    <div class="card" style="cursor:default;margin-top:1rem">
-      <h2 style="margin-bottom:.5rem">Automatic Backup</h2>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Schedule backups to WebDAV (Nextcloud) or a local path</p>
       <div id="settings-autobackup"></div>
-    </div>
-
-    <div class="card" style="cursor:default;margin-top:1rem">
-      <h2 style="margin-bottom:.5rem">Appearance</h2>
-      <div class="setting-row"><span>Theme</span><button class="toggle ${theme==='light'?'on':''}" onclick="toggleTheme()"></button><span style="font-size:.8rem;color:var(--muted)">${theme==='dark'?'Dark':'Light'}</span></div>
     </div>
 
     <div class="card" style="cursor:default;margin-top:1rem">
@@ -491,6 +794,7 @@ async function render(pushState=true){
 
     <p style="text-align:center;margin-top:1.5rem;font-size:.8rem;color:var(--muted)">Roadlog <span id="app-version">...</span></p>`;
     loadSettingsNotifications();loadAuditLog();loadAutoBackup();
+    wireSettingsCollapse();
     fetch('/api/version').then(r=>r.json()).then(d=>{const el=document.getElementById('app-version');if(el)el.textContent=d.version}).catch(()=>{});
   }
 }
@@ -518,6 +822,11 @@ async function changeDistanceUnit(val){
 async function changeTZ(val){
   state.settings.timezone=val;
   await api('/settings',{method:'PUT',body:JSON.stringify(state.settings)});
+}
+async function changeDateFormat(val){
+  state.settings.dateFormat=val;dateFmt=val;
+  await api('/settings',{method:'PUT',body:JSON.stringify(state.settings)});
+  render();
 }
 async function renameStation(id){
   const st=state.allStations.find(s=>s.id===id);
@@ -611,6 +920,21 @@ function renderStationDropdown(showAll){
 function pickStation(name){
   document.getElementById('f_station').value=name;
   document.getElementById('station-dropdown').style.display='none';
+  applyStationPrice(name);
+}
+// When "Remember price per station" is on and the chosen (saved) station has a recorded last price
+// for this vehicle, fill the price field from it. Only fires on an explicit pick from the dropdown.
+function applyStationPrice(name){
+  if(!(state.settings&&state.settings.prefillPricePerStation))return;
+  if(!state.prefill||!state.prefill.stationPrices)return;
+  const price=state.prefill.stationPrices[(name||'').toLowerCase().trim()];
+  if(price==null)return;
+  const el=document.getElementById('f_price');
+  if(!el)return;
+  el.value=price;
+  const hint=el.parentElement.querySelector('.prefill-hint');
+  if(hint)hint.textContent='Price from your last fill-up at '+name;
+  if(typeof calcTotal==='function')calcTotal();
 }
 async function saveAndPickStation(){
   const name=document.getElementById('f_station').value;
@@ -618,6 +942,7 @@ async function saveAndPickStation(){
   const saved=await api('/stations',{method:'POST',body:JSON.stringify({name:name,fuelType:v.fuelType})});
   stationsList.push(saved);
   document.getElementById('station-dropdown').style.display='none';
+  applyStationPrice(name);
 }
 async function removeStation(id){
   await api(`/stations/${id}`,{method:'DELETE'});
@@ -789,10 +1114,10 @@ async function loadEVDashboard(){
   el.innerHTML=`<div class="chart-section" style="margin-top:1rem">
     <h3>⚡ EV Solar Dashboard</h3>
     <div class="stats" style="margin-bottom:1rem">
-      <div class="stat-card"><div class="value" style="color:#10b981">${curr}${ev.totalSaved.toFixed(0)}</div><div class="label">Saved vs Grid</div></div>
+      <div class="stat-card"><div class="value" style="color:#10b981">${ev.totalSaved.toFixed(0)}${curr}</div><div class="label">Saved vs Grid</div></div>
       <div class="stat-card"><div class="value">${solarPct}%</div><div class="label">Solar Charged</div></div>
       <div class="stat-card"><div class="value">${ev.totalEnergy.toFixed(0)} kWh</div><div class="label">Total Charged</div></div>
-      <div class="stat-card"><div class="value">${ev.costPerKm?(curr+ev.costPerKm.toFixed(2)):'—'}</div><div class="label">Cost/${distUnit}</div></div>
+      <div class="stat-card"><div class="value">${ev.costPerKm?(ev.costPerKm.toFixed(2)+curr):'—'}</div><div class="label">Cost/${distUnit}</div></div>
     </div>
     <div style="margin-bottom:1rem">
       <div style="font-size:.85rem;color:var(--muted);margin-bottom:.25rem">Energy Source</div>
@@ -801,19 +1126,10 @@ async function loadEVDashboard(){
         <div style="width:${gridPct}%;background:#6b7280;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:white;font-weight:600">${gridPct>10?gridPct+'% Grid':''}</div>
       </div>
     </div>
-    ${monthly.length>1?`<div style="font-size:.85rem;color:var(--muted);margin-bottom:.25rem">Monthly Charging</div>
-    <div style="display:flex;align-items:flex-end;gap:3px;height:100px">${monthly.map(m=>{
-      const h=(m.energy/maxE*100).toFixed(0);
-      const sH=(m.solarPct/100*m.energy/maxE*100).toFixed(0);
-      const gH=h-sH;
-      return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%">
-        <div class="bar-tip" style="height:${sH}%;background:#10b981;min-height:${m.energy>0?'2px':'0'}" data-tip="${m.month}: ${m.energy.toFixed(0)}kWh (${m.solarPct.toFixed(0)}% solar)"></div>
-        <div style="height:${gH}%;background:#6b7280;min-height:0"></div>
-      </div>`;
-    }).join('')}</div>
-    <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-top:.25rem"><span>${monthly[0].month.slice(5)}</span><span>${monthly[monthly.length-1].month.slice(5)}</span></div>
-    <div style="font-size:.7rem;color:var(--muted);margin-top:.25rem">🟢 Solar · ⚫ Grid</div>`:''}
-    <div style="font-size:.8rem;color:var(--muted);margin-top:.75rem">${ev.sessions} EVCC sessions · ${curr}${ev.totalCost.toFixed(2)} total cost · ${ev.totalEnergy.toFixed(1)} kWh</div>
+    ${monthly.length?`<div style="font-size:.85rem;color:var(--muted);margin-bottom:.35rem">Monthly Charging</div>
+    ${(()=>{const keys=monthRange(monthly[0].month,monthly[monthly.length-1].month);const byKey={};monthly.forEach(m=>byKey[m.month]=m);const mx=Math.max.apply(null,monthly.map(m=>m.energy).concat(0.0001));const bars=keys.map(k=>{const m=byKey[k];const energy=m?m.energy:0;const sp=m?m.solarPct:0;const h=(energy/mx*72).toFixed(1);const lbl=k.slice(5)+'/'+k.slice(2,4);const vl=energy>0?(Math.round(energy)<1?'<1':String(Math.round(energy))):'';const tip=formatBucket(k,false)+': '+energy.toFixed(1)+' kWh · '+sp.toFixed(0)+'% solar';return '<div class="month-col"><div class="bar-group"><div class="gbar bar-tip'+(energy>0?'':' zero')+'" style="height:'+h+'%;min-height:'+(energy>0?'3px':'2px')+';background:#6b7280;display:flex;flex-direction:column-reverse;overflow:hidden" data-tip="'+tip+'"><div style="height:'+sp.toFixed(0)+'%;width:100%;background:#10b981"></div>'+(vl?'<span class="gbar-val">'+vl+'</span>':'')+'</div></div><div class="month-lbl">'+lbl+'</div></div>';}).join('');return '<div class="chart-bars">'+bars+'</div>';})()}
+    <div style="font-size:.7rem;color:var(--muted);margin-top:.4rem">🟢 Solar · ⚫ Grid · bar height = kWh charged</div>`:''}
+    <div style="font-size:.8rem;color:var(--muted);margin-top:.75rem">${ev.sessions} EVCC sessions · ${ev.totalCost.toFixed(2)}${curr} total cost · ${ev.totalEnergy.toFixed(1)} kWh</div>
   </div>`;
 }
 async function loadDueSoon(){
@@ -823,7 +1139,7 @@ async function loadDueSoon(){
   if(!reminders.length&&!expenses.length){el.innerHTML='';return}
   let html='<div style="margin:1rem 0;padding:1rem;border-radius:.75rem;background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(16,185,129,.08));border:1px solid var(--border)"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem"><span style="font-size:1.2rem">⏰</span><h2 style="margin:0;font-size:1.1rem">Due Soon</h2></div>';
   expenses.forEach(e=>{
-    html+=`<div class="card" style="cursor:default;margin-bottom:.5rem"><div style="display:flex;justify-content:space-between;align-items:center"><div>🔁 <strong>${e.notes||e.category}</strong><div style="font-size:.85rem;color:var(--muted)">${e.vehicleName} · Due: ${new Date(e.nextDue).toLocaleDateString()} · ${curr}${e.amount.toFixed(2)}</div></div><div style="display:flex;gap:.25rem"><button class="btn btn-sm" style="background:#10b981" title="Confirm payment" onclick="confirmRecurring(${e.id})">✅</button><button class="btn btn-sm" style="background:var(--border)" title="Edit amount & confirm" onclick="editConfirmRecurring(${e.id},${e.amount})">✏️</button><button class="btn btn-sm" style="background:#ef4444" title="End recurring" onclick="endRecurring(${e.id})">⏹️</button></div></div></div>`;
+    html+=`<div class="card" style="cursor:default;margin-bottom:.5rem"><div style="display:flex;justify-content:space-between;align-items:center"><div>🔁 <strong>${e.notes||e.category}</strong><div style="font-size:.85rem;color:var(--muted)">${e.vehicleName} · Due: ${new Date(e.nextDue).toLocaleDateString()} · ${e.amount.toFixed(2)}${curr}</div></div><div style="display:flex;gap:.25rem"><button class="btn btn-sm" style="background:#10b981" title="Confirm payment" onclick="confirmRecurring(${e.id})">✅</button><button class="btn btn-sm" style="background:var(--border)" title="Edit amount & confirm" onclick="editConfirmRecurring(${e.id},${e.amount})">✏️</button><button class="btn btn-sm" style="background:#ef4444" title="End recurring" onclick="endRecurring(${e.id})">⏹️</button></div></div></div>`;
   });
   reminders.forEach(r=>{
     html+=`<div class="card" style="cursor:default;margin-bottom:.5rem"><div style="display:flex;justify-content:space-between;align-items:center"><div>🔔 <strong>${r.title}</strong><div style="font-size:.85rem;color:var(--muted)">${r.vehicleName} · Due: ${new Date(r.dueDate).toLocaleDateString()}</div></div><div><button class="btn btn-sm" style="background:#10b981" title="Mark as done" onclick="markReminderDoneDash(${r.id})">✅</button></div></div></div>`;
@@ -1203,6 +1519,15 @@ async function loadAuditLog(offset=0){
 window.addEventListener('popstate',e=>{
   if(e.state){state.page=e.state.page;state.vehicleId=e.state.vehicleId;render(false)}
 });
+// Floating tooltip for any [data-tip] element - not clipped by chart overflow or bar edges.
+(function(){
+  const tip=document.createElement('div');tip.id='tip';document.body.appendChild(tip);
+  document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(!t)return;tip.textContent=t.getAttribute('data-tip');tip.style.display='block';});
+  document.addEventListener('mousemove',e=>{if(tip.style.display!=='block')return;let x=e.clientX+14,y=e.clientY-34;const w=tip.offsetWidth;if(x+w>window.innerWidth-8)x=e.clientX-w-14;if(y<4)y=e.clientY+18;tip.style.left=x+'px';tip.style.top=y+'px';});
+  document.addEventListener('mouseout',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t)tip.style.display='none';});
+})();
+// Close any open ⚙ menu when clicking outside it.
+document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('.cog-wrap'))){document.querySelectorAll('.cog-wrap.open').forEach(w=>w.classList.remove('open'));state.openMenu=null;}});
 render().catch(e=>{document.getElementById('app').innerHTML='<pre style="color:red;padding:1rem">Error: '+e.message+'\n'+e.stack+'</pre>'});
 </script>
 </body>
