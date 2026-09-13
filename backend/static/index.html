@@ -258,6 +258,9 @@ function resetDashFilters(){
   state.hiddenVehicles=[];state.dashCostType='all';state.dashMetric='cost';
   render();
 }
+// Persist dashboard filter/view choices across refreshes.
+function saveDashPrefs(){try{localStorage.setItem('roadlog_dash',JSON.stringify({period:state.period,customFrom:state.customFrom,customTo:state.customTo,dashMetric:state.dashMetric,dashCostType:state.dashCostType,hiddenVehicles:state.hiddenVehicles,dashDaily:state.dashDaily,dashShowValues:state.dashShowValues}));}catch(e){}}
+function loadDashPrefs(){try{const d=JSON.parse(localStorage.getItem('roadlog_dash')||'{}');['period','customFrom','customTo','dashMetric','dashCostType','hiddenVehicles','dashDaily','dashShowValues'].forEach(k=>{if(d[k]!==undefined)state[k]=d[k];});}catch(e){}}
 function clearHistoryFilters(){
   state.hfHiddenTypes=[];state.hfHiddenCars=[];state.hfHiddenStations=[];state.hfPeriod='all';state.hfCustomFrom='';state.hfCustomTo='';state.hfPrice={op:'any'};state.hfTotal={op:'any'};state.hfVol={op:'any'};state.histMenu=null;
   render();
@@ -455,6 +458,7 @@ async function render(pushState=true){
     const periodLabel=(PERIODS.find(p=>p[0]===(state.period||'year'))||['','This Year'])[1];
     const periodActive=state.period&&state.period!=='year';
     const graphFilterActive=(state.dashMetric&&state.dashMetric!=='cost')||(state.dashCostType&&state.dashCostType!=='all')||(state.hiddenVehicles&&state.hiddenVehicles.length);
+    saveDashPrefs();
     app.innerHTML=`${navBar('dashboard')}<div class="header"><h1>Dashboard</h1>
       <div class="cog-wrap${state.openMenu==='period'?' open':''}">
         <button class="cog-btn" title="Period" onclick="event.stopPropagation();state.openMenu=state.openMenu==='period'?null:'period';render()">${periodLabel} ▾</button>
@@ -1538,6 +1542,7 @@ window.addEventListener('popstate',e=>{
 })();
 // Close any open ⚙ menu when clicking outside it.
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('.cog-wrap'))){document.querySelectorAll('.cog-wrap.open').forEach(w=>w.classList.remove('open'));state.openMenu=null;state.histMenu=null;}});
+loadDashPrefs();
 render().catch(e=>{document.getElementById('app').innerHTML='<pre style="color:red;padding:1rem">Error: '+e.message+'\n'+e.stack+'</pre>'});
 </script>
 </body>

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.2 (2026-09-13)
+
+- Dashboard filters (period, cost/distance, breakdown, hidden cars, show-days, show-values) now persist across page refresh
+
 ## v0.10.1 (2026-09-13)
 
 - History filters reworked into compact dropdowns: multi-select Type / Cars / Stations (with All/None), a Period selector (like the dashboard), and </>/between range filters for price-per-unit, total, and volume
