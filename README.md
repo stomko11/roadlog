@@ -14,12 +14,12 @@ It's a single self-hosted container (Go + embedded frontend + SQLite) — nothin
 
 ## Screenshots
 
-<p align="center">
-  <img src="screenshots/dashboard.png" width="300" alt="Dashboard">
-  <img src="screenshots/vehicle-detail.png" width="300" alt="Vehicle Detail">
-  <img src="screenshots/history.png" width="300" alt="History">
-  <img src="screenshots/settings.png" width="300" alt="Settings">
-</p>
+<table align="center"><tr>
+  <td align="center"><img src="screenshots/01-dashboard.png" width="200" alt="Dashboard"><br>Dashboard</td>
+  <td align="center"><img src="screenshots/02-vehicle-detail.png" width="200" alt="Vehicle detail"><br>Vehicle detail</td>
+  <td align="center"><img src="screenshots/03-history.png" width="200" alt="History"><br>History</td>
+  <td align="center"><img src="screenshots/04-settings.png" width="200" alt="Settings"><br>Settings</td>
+</tr></table>
 
 ## Features
 
