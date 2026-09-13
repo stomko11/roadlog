@@ -17,8 +17,8 @@ It's a single self-hosted container (Go + embedded frontend + SQLite) — nothin
 <p align="center">
   <img src="screenshots/dashboard.png" width="300" alt="Dashboard">
   <img src="screenshots/vehicle-detail.png" width="300" alt="Vehicle Detail">
-  <img src="screenshots/fillup-form.png" width="300" alt="Fill-up Form">
-  <img src="screenshots/vehicles.png" width="300" alt="Vehicles">
+  <img src="screenshots/history.png" width="300" alt="History">
+  <img src="screenshots/settings.png" width="300" alt="Settings">
 </p>
 
 ## Features
