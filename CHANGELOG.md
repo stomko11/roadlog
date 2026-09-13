@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.1 (2026-09-13)
+
+- History filters reworked into compact dropdowns: multi-select Type / Cars / Stations (with All/None), a Period selector (like the dashboard), and </>/between range filters for price-per-unit, total, and volume
+- Responsive fixes: nav wraps instead of overflowing on narrow screens, dashboard title/period aligned, summary stacks cleanly on mobile; added a Mobile/Desktop/Auto view toggle
+- Chart polish: rotated per-bar value labels with room above tall bars, tooltips honour the date format and show real (unrounded) values, "<1" for tiny nonzero values, "0" on empty months
+- Per-vehicle Consumption/Price-trend and EV Monthly-charging charts use the bucketed style with a Month/Day toggle
+- Currency shown as a suffix everywhere (e.g. `12.34€`); date/time inputs use local time (not UTC)
+
 ## v0.10.0 (2026-09-13)
 
 - **History page** — one filterable log of all fill-ups + expenses across all vehicles (filter by type, car, station, period, price, volume); rows are clickable to edit

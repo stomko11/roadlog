@@ -29,11 +29,13 @@ input[type="date"]{cursor:pointer}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:.75rem;padding:.75rem;text-align:center;transition:background .3s}
 .stat-card .value{font-size:1.3rem;font-weight:700;color:var(--accent)}.stat-card .label{font-size:.75rem;color:var(--muted)}
 /* Compact dashboard summary strip */
-.summary{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1rem 1.15rem;margin-bottom:1rem}
+.summary{display:flex;flex-direction:column;align-items:stretch;gap:.75rem;background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1rem 1.15rem;margin-bottom:1rem}
+body.vm-desktop .summary{flex-direction:row;align-items:center;gap:1rem}
 .summary .hero{display:flex;flex-direction:column;gap:.15rem}
 .summary .hero .big{font-size:1.7rem;font-weight:700;line-height:1;color:var(--text);letter-spacing:-.02em}
 .summary .hero .sub{font-size:.72rem;color:var(--muted)}
-.summary .mini{display:flex;gap:1.25rem;margin-left:auto;flex-wrap:wrap}
+.summary .mini{display:flex;gap:1.25rem;flex-wrap:wrap}
+body.vm-desktop .summary .mini{margin-left:auto}
 .summary .mini .m{display:flex;flex-direction:column;gap:.1rem;min-width:60px}
 .summary .mini .m .mv{font-size:1.05rem;font-weight:700}
 .summary .mini .m .ml{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
@@ -78,12 +80,13 @@ input[type="date"]{cursor:pointer}
 .linkbtn:hover{color:var(--accent)}
 .bar-group{border-bottom:1px solid var(--border)}
 .gbar.zero{opacity:.22}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:.5rem}
+.header h1,.header h2{margin-bottom:0}
 .back{color:var(--muted);text-decoration:none;font-size:.9rem;cursor:pointer;background:none;border:none}.back:hover{color:var(--text)}
 .empty{text-align:center;color:var(--muted);padding:2rem}
 .error{color:#ef4444;font-size:.85rem;margin-bottom:.5rem}
 .link{color:var(--accent);cursor:pointer;background:none;border:none;font-size:.85rem}
-.nav{display:flex;gap:.5rem;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}
+.nav{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}
 .nav button{background:none;border:none;color:var(--muted);padding:.4rem .8rem;border-radius:.4rem;cursor:pointer;font-size:.85rem}
 .nav button.active{background:var(--accent);color:white}
 .toggle{position:relative;width:44px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;border:none;transition:background .3s}
@@ -256,21 +259,20 @@ function resetDashFilters(){
   render();
 }
 function clearHistoryFilters(){
-  state.hfType='all';state.hfHiddenCars=[];state.hfHiddenStations=[];state.hfMinPrice='';state.hfMaxPrice='';state.hfFrom='';state.hfTo='';
+  state.hfHiddenTypes=[];state.hfHiddenCars=[];state.hfHiddenStations=[];state.hfPeriod='all';state.hfCustomFrom='';state.hfCustomTo='';state.hfPrice={op:'any'};state.hfTotal={op:'any'};state.hfVol={op:'any'};state.histMenu=null;
   render();
 }
-function toggleHistCar(id){
-  if(!state.hfHiddenCars)state.hfHiddenCars=[];
-  const i=state.hfHiddenCars.indexOf(id);
-  if(i>=0)state.hfHiddenCars.splice(i,1);else state.hfHiddenCars.push(id);
-  render();
-}
-function toggleHistStation(name){
-  if(!state.hfHiddenStations)state.hfHiddenStations=[];
-  const i=state.hfHiddenStations.indexOf(name);
-  if(i>=0)state.hfHiddenStations.splice(i,1);else state.hfHiddenStations.push(name);
-  render();
-}
+function toggleHistCar(id){if(!state.hfHiddenCars)state.hfHiddenCars=[];const i=state.hfHiddenCars.indexOf(id);if(i>=0)state.hfHiddenCars.splice(i,1);else state.hfHiddenCars.push(id);render();}
+function toggleHistStation(name){if(!state.hfHiddenStations)state.hfHiddenStations=[];const i=state.hfHiddenStations.indexOf(name);if(i>=0)state.hfHiddenStations.splice(i,1);else state.hfHiddenStations.push(name);render();}
+function toggleHistType(t){if(!state.hfHiddenTypes)state.hfHiddenTypes=[];const i=state.hfHiddenTypes.indexOf(t);if(i>=0)state.hfHiddenTypes.splice(i,1);else state.hfHiddenTypes.push(t);render();}
+function histSetOp(key,op){const r=state[key]||{};state[key]={op:op,a:r.a,b:r.b};render();}
+function histSetVal(key,which,v){state[key]=state[key]||{op:'any'};state[key][which]=v;}
+function histInRange(val,r){if(!r||!r.op||r.op==='any')return true;const a=parseFloat(r.a);if(isNaN(a))return true;if(r.op==='lt')return val<a;if(r.op==='gt')return val>a;if(r.op==='bt'){const b=parseFloat(r.b);if(isNaN(b))return val>=a;return val>=Math.min(a,b)&&val<=Math.max(a,b);}return true;}
+function histSetAll(key,arr){state[key]=arr;}
+function histDD(id,label,summary,menuHtml){return '<div class="fgrp"><label>'+label+'</label><div class="cog-wrap'+(state.histMenu===id?' open':'')+'"><button class="cog-btn" style="text-align:left;min-width:96px" onclick="event.stopPropagation();state.histMenu=state.histMenu===\''+id+'\'?null:\''+id+'\';render()">'+summary+' \u25be</button><div class="cog-menu" style="left:0;right:auto;min-width:180px;max-height:300px;overflow-y:auto">'+menuHtml+'</div></div></div>';}
+function histMultiDD(id,label,items,toggleFn,setKey){const shown=items.filter(it=>!it.hidden).length,total=items.length;const summary=shown===total?'All':(shown+'/'+total);const allVals='['+items.map(it=>it.arg).join(',')+']';const head='<div style="display:flex;gap:.3rem;padding:.3rem .4rem .2rem"><button class="cog-opt" style="flex:1;text-align:center;background:var(--bg)" onclick="event.stopPropagation();histSetAll(\''+setKey+'\',[]);render()">All</button><button class="cog-opt" style="flex:1;text-align:center;background:var(--bg)" onclick="event.stopPropagation();histSetAll(\''+setKey+'\','+allVals+');render()">None</button></div><div class="cog-sep"></div>';const menu=head+items.map(it=>'<button class="cog-opt" onclick="event.stopPropagation();'+toggleFn+'('+it.arg+');render()">'+(it.hidden?'\u2610':'\u2611')+' '+(it.dot?'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+it.dot+';margin-right:4px"></span>':'')+it.name+'</button>').join('');return histDD(id,label,summary,menu);}
+function histRangeDD(id,label,key,unit){const r=state[key]||{op:'any'};let summary='Any';if(r.op==='lt')summary='< '+(r.a||'?')+unit;else if(r.op==='gt')summary='> '+(r.a||'?')+unit;else if(r.op==='bt')summary=(r.a||'?')+'–'+(r.b||'?')+unit;const ob=(op,txt)=>'<button class="cog-opt '+(r.op===op?'on':'')+'" onclick="event.stopPropagation();histSetOp(\''+key+'\',\''+op+'\');render()">'+txt+'</button>';const ip='padding:.35rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text);font-size:.85rem;width:82px';let inp='';if(r.op==='lt'||r.op==='gt')inp='<div style="padding:.4rem .5rem"><input type="number" step="0.01" inputmode="decimal" value="'+(r.a||'')+'" placeholder="value ('+unit+')" style="'+ip+'" oninput="histSetVal(\''+key+'\',\'a\',this.value);renderHistoryList()"></div>';else if(r.op==='bt')inp='<div style="padding:.4rem .5rem;display:flex;gap:.3rem;align-items:center"><input type="number" step="0.01" value="'+(r.a||'')+'" placeholder="from" style="'+ip+'" oninput="histSetVal(\''+key+'\',\'a\',this.value);renderHistoryList()"><span>–</span><input type="number" step="0.01" value="'+(r.b||'')+'" placeholder="to" style="'+ip+'" oninput="histSetVal(\''+key+'\',\'b\',this.value);renderHistoryList()"></div>';const menu='<div class="cog-label">'+label+'</div>'+ob('any','Any')+ob('lt','Less than')+ob('gt','Greater than')+ob('bt','Between')+inp;return histDD(id,label,summary,menu);}
+function histPeriodDD(){const P=[['all','All time'],['month','This Month'],['lastmonth','Last Month'],['30days','Last 30 Days'],['last3months','Last 3 Months'],['last6months','Last 6 Months'],['year','This Year'],['lastyear','Last Year'],['custom','Custom…']];const cur=state.hfPeriod||'all';const label=(P.find(p=>p[0]===cur)||['','All time'])[1];const opts=P.map(p=>'<button class="cog-opt '+(cur===p[0]?'on':'')+'" onclick="event.stopPropagation();state.hfPeriod=\''+p[0]+'\';'+(p[0]==='custom'?'':'state.histMenu=null;')+'render()">'+p[1]+'</button>').join('');const ipd='padding:.35rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg);color:var(--text);font-size:.8rem';const custom=cur==='custom'?'<div class="cog-sep"></div><div style="padding:.4rem .5rem;display:flex;flex-direction:column;gap:.3rem"><input type="date" value="'+(state.hfCustomFrom||'')+'" onchange="state.hfCustomFrom=this.value;render()" style="'+ipd+'"><input type="date" value="'+(state.hfCustomTo||'')+'" onchange="state.hfCustomTo=this.value;render()" style="'+ipd+'"></div>':'';return histDD('period','Period',label,opts+custom);}
 // Make each Settings section card collapsible (first one open, rest collapsed to keep the page compact).
 function wireSettingsCollapse(){
   document.querySelectorAll('#app > .card').forEach((card,idx)=>{
@@ -294,15 +296,20 @@ function renderHistoryList(){
   const f=state;
   const hidden=f.hfHiddenCars||[];
   const hStations=f.hfHiddenStations||[];
+  const hTypes=f.hfHiddenTypes||[];
+  let pr=null;
+  if(f.hfPeriod&&f.hfPeriod!=='all'){
+    if(f.hfPeriod==='custom'){if(f.hfCustomFrom&&f.hfCustomTo)pr={from:f.hfCustomFrom,to:f.hfCustomTo};}
+    else pr=getPeriodRange(f.hfPeriod);
+  }
   const filtered=items.filter(it=>{
-    if(f.hfType&&f.hfType!=='all'&&it.type!==f.hfType)return false;
+    if(hTypes.includes(it.type))return false;
     if(hidden.includes(it.vehicleId))return false;
     if(it.type==='fillup'&&hStations.includes(baseStation(it.station)))return false;
-    const day=(it.date||'').slice(0,10);
-    if(f.hfFrom&&day<f.hfFrom)return false;
-    if(f.hfTo&&day>f.hfTo)return false;
-    if(f.hfMinPrice!==''&&f.hfMinPrice!=null){if(it.type!=='fillup'||it.pricePerUnit<parseFloat(f.hfMinPrice))return false;}
-    if(f.hfMaxPrice!==''&&f.hfMaxPrice!=null){if(it.type!=='fillup'||it.pricePerUnit>parseFloat(f.hfMaxPrice))return false;}
+    if(pr){const day=(it.date||'').slice(0,10);if(day<pr.from||day>pr.to)return false;}
+    if(f.hfPrice&&f.hfPrice.op&&f.hfPrice.op!=='any'){if(it.type!=='fillup'||!histInRange(it.pricePerUnit,f.hfPrice))return false;}
+    if(f.hfTotal&&f.hfTotal.op&&f.hfTotal.op!=='any'){if(!histInRange(it.amount,f.hfTotal))return false;}
+    if(f.hfVol&&f.hfVol.op&&f.hfVol.op!=='any'){if(it.type!=='fillup'||!histInRange(it.fuelAmount,f.hfVol))return false;}
     return true;
   });
   const sum=filtered.reduce((s,it)=>s+(it.amount||0),0);
@@ -316,13 +323,13 @@ function renderHistoryList(){
     const icon=isFuel?'⛽':'🧾';
     const click=isFuel?('histEditFillup('+it.id+','+it.vehicleId+')'):('editExpense('+it.id+','+it.vehicleId+')');
     const mid=isFuel
-      ?(it.station||'—')+' <span style="color:var(--muted);font-size:.8rem">· '+(it.fuelAmount||0).toFixed(1)+' @ '+curr+(it.pricePerUnit||0).toFixed(3)+'</span>'
+      ?(it.station||'—')+' <span style="color:var(--muted);font-size:.8rem">· '+(it.fuelAmount||0).toFixed(1)+' @ '+(it.pricePerUnit||0).toFixed(3)+curr+'</span>'
       :(it.category||'Expense')+(it.notes?' <span style="color:var(--muted);font-size:.8rem">· '+it.notes+'</span>':'');
     return '<div class="card hist-row" onclick="'+click+'">'
       +'<span style="font-size:1.1rem">'+icon+'</span>'
       +'<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:.4rem">'+dot+'<strong style="font-size:.85rem">'+(it.vehicleName||'—')+'</strong><span style="color:var(--muted);font-size:.75rem">'+day+'</span></div>'
       +'<div style="font-size:.85rem;margin-top:.15rem">'+mid+'</div></div>'
-      +'<div style="font-weight:700;white-space:nowrap">'+curr+(it.amount||0).toFixed(2)+'</div></div>';
+      +'<div style="font-weight:700;white-space:nowrap">'+(it.amount||0).toFixed(2)+curr+'</div></div>';
   }).join('');
 }
 
@@ -536,22 +543,25 @@ async function render(pushState=true){
   } else if(state.page==='history'){
     try{state.history=await api('/history');state.vehicles=await api('/vehicles');const st=await api('/settings');curr=currencies[st.currency]||st.currency;volUnit=st.volumeUnit||'L';distUnit=st.distanceUnit||'km';dateFmt=st.dateFormat||dateFmt}catch(e){return}
     if(!state.hfHiddenCars)state.hfHiddenCars=[];
-    const stations=[...new Set((state.history||[]).filter(it=>it.type==='fillup'&&it.station).map(it=>baseStation(it.station)).filter(Boolean))].sort();
     if(!state.hfHiddenStations)state.hfHiddenStations=[];
-    const ipStyle='padding:.4rem .5rem;border:1px solid var(--border);border-radius:.5rem;background:var(--bg);color:var(--text);font-size:.85rem';
+    if(!state.hfHiddenTypes)state.hfHiddenTypes=[];
+    const stations=[...new Set((state.history||[]).filter(it=>it.type==='fillup'&&it.station).map(it=>baseStation(it.station)).filter(Boolean))].sort();
     const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
-    const carChips=state.vehicles.map((v,i)=>{const on=!state.hfHiddenCars.includes(v.id);return '<div class="cchip '+(on?'':'off')+'" onclick="toggleHistCar('+v.id+')"><span class="dot" style="background:'+(v.color||colors[i%colors.length])+'"></span>'+v.name+'</div>';}).join('');
-    const stationChips=stations.map(s=>{const on=!state.hfHiddenStations.includes(s);const sv=s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");return '<div class="cchip '+(on?'':'off')+'" onclick="toggleHistStation(\''+sv+'\')">'+s+'</div>';}).join('');
+    const typeItems=[{arg:"'fillup'",name:'Fill-ups',hidden:state.hfHiddenTypes.includes('fillup')},{arg:"'expense'",name:'Expenses',hidden:state.hfHiddenTypes.includes('expense')}];
+    const carItems=state.vehicles.map((v,i)=>({arg:v.id,name:v.name,dot:(v.color||colors[i%colors.length]),hidden:state.hfHiddenCars.includes(v.id)}));
+    const stationItems=stations.map(s=>({arg:"'"+s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'",name:s,hidden:state.hfHiddenStations.includes(s)}));
     app.innerHTML=`${navBar('history')}<div class="header"><h1>History</h1></div>
     <div class="card" style="cursor:default;padding:.85rem">
       <div class="filter-bar">
-        <div class="fgrp"><label>Type</label><div class="seg"><button class="${(state.hfType||'all')==='all'?'on':''}" onclick="state.hfType='all';render()">All</button><button class="${state.hfType==='fillup'?'on':''}" onclick="state.hfType='fillup';render()">Fill-ups</button><button class="${state.hfType==='expense'?'on':''}" onclick="state.hfType='expense';render()">Expenses</button></div></div>
-        <div class="fgrp"><label>Price / unit</label><div style="display:flex;gap:.35rem"><input type="number" step="0.01" inputmode="decimal" placeholder="min" value="${state.hfMinPrice||''}" style="${ipStyle};width:72px" oninput="state.hfMinPrice=this.value;renderHistoryList()"><input type="number" step="0.01" inputmode="decimal" placeholder="max" value="${state.hfMaxPrice||''}" style="${ipStyle};width:72px" oninput="state.hfMaxPrice=this.value;renderHistoryList()"></div></div>
-        <div class="fgrp"><label>Date range</label><div class="date-range"><input type="date" value="${state.hfFrom||''}" onchange="state.hfFrom=this.value;renderHistoryList()"><span>→</span><input type="date" value="${state.hfTo||''}" onchange="state.hfTo=this.value;renderHistoryList()"></div></div>
+        ${histMultiDD('type','Type',typeItems,'toggleHistType','hfHiddenTypes')}
+        ${histMultiDD('car','Cars',carItems,'toggleHistCar','hfHiddenCars')}
+        ${stations.length?histMultiDD('station','Stations',stationItems,'toggleHistStation','hfHiddenStations'):''}
+        ${histPeriodDD()}
+        ${histRangeDD('price','Price / unit','hfPrice',curr)}
+        ${histRangeDD('total','Total','hfTotal',curr)}
+        ${histRangeDD('vol','Volume','hfVol',volUnit)}
         <div class="fgrp" style="align-self:flex-end"><button class="btn btn-sm" style="background:var(--border)" onclick="clearHistoryFilters()">Clear all</button></div>
       </div>
-      <div style="margin-top:.7rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-right:.2rem">Cars</span>${carChips}</div>
-      ${stations.length?`<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center"><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-right:.2rem">Stations</span>${stationChips}</div>`:''}
     </div>
     <div id="hist-summary" style="font-size:.8rem;color:var(--muted);margin:.25rem .25rem .75rem"></div>
     <div id="hist-list"></div>`;
@@ -1527,7 +1537,7 @@ window.addEventListener('popstate',e=>{
   document.addEventListener('mouseout',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t)tip.style.display='none';});
 })();
 // Close any open ⚙ menu when clicking outside it.
-document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('.cog-wrap'))){document.querySelectorAll('.cog-wrap.open').forEach(w=>w.classList.remove('open'));state.openMenu=null;}});
+document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('.cog-wrap'))){document.querySelectorAll('.cog-wrap.open').forEach(w=>w.classList.remove('open'));state.openMenu=null;state.histMenu=null;}});
 render().catch(e=>{document.getElementById('app').innerHTML='<pre style="color:red;padding:1rem">Error: '+e.message+'\n'+e.stack+'</pre>'});
 </script>
 </body>

@@ -6,6 +6,12 @@
 
 A self-hosted vehicle expense tracking system. Track fuel fill-ups, other expenses, and monitor consumption across all your vehicles.
 
+## Why Roadlog?
+
+I've long liked the idea behind self-hosted vehicle trackers, but a handful of annoyances (some I hit with tools like Hammond) kept bugging me — so I built my own take and fixed those rough edges the way I wanted. The other driver was **EVCC**: I run it at home for solar charging, so first-class EVCC integration was something I wanted baked in from the start.
+
+It's a single self-hosted container (Go + embedded frontend + SQLite) — nothing external to run. Not trying to replace anything; just a scratch-my-own-itch project that others might find useful. **PRs and suggestions are very welcome.**
+
 ## Screenshots
 
 <p align="center">
